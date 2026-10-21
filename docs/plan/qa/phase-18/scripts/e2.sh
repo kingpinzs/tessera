@@ -83,6 +83,7 @@ assert_eq "Files cold-started: the pane is open, three rows" "recent device bin"
 cat > "$ROW_DIR/poll-mounted.sh" <<'SH'
 n=0
 while [ $n -lt 400 ]; do
+  # (the device's sh, no pipefail: grep -q's early exit cannot fail this test — exempt from the here-string rule, 2026-10-21)
   if sm list-volumes public | grep -q ' mounted '; then date +%s%3N; exit 0; fi
   n=$((n + 1))
 done
@@ -193,6 +194,7 @@ am force-stop app.tileshell
 ( i=0; while [ $i -lt 200 ] && [ ! -f $flag ]; do am force-stop app.tileshell; i=$((i + 1)); done; echo "force-stops beside sm $verb: $i" ) &
 sm $verb "$vol"
 n=0
+# (the device's sh, no pipefail: grep -q's early exit cannot fail this test — exempt from the here-string rule, 2026-10-21)
 while [ $n -lt 100 ]; do sm list-volumes public | grep -q " $want " && break; n=$((n + 1)); done
 echo "sm list-volumes public: $(sm list-volumes public)"
 : > $flag

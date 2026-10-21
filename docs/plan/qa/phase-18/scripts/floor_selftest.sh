@@ -47,7 +47,7 @@ expect_fail() { # name needle command…
   side="$D/expect-fail-$EXPECT_N.txt"
   : > "$side"
   ( LOG="$side"; PASS=0; FAIL=0; "$@" >/dev/null 2>&1; echo $? > "$side.rc" )
-  if grep '^FAIL' "$side" | grep -qF -- "$needle"; then
+  if grep -qF -- "$needle" <<< "$(grep '^FAIL' "$side")"; then
     _verdict PASS "$name" "it failed, as it must: $(grep '^FAIL' "$side" | grep -F -- "$needle" | head -1 | tr -s ' ' | cut -c1-150) (expect-fail-$EXPECT_N.txt, rc $(cat "$side.rc"))"
   else
     _verdict FAIL "$name" "no FAIL line holding [$needle] — the helper cannot fail: $(tr '\n' ';' < "$side" | cut -c1-200)"
@@ -353,6 +353,6 @@ assert_eq "at the end: the shared-storage listing equals the one from the start"
 assert_eq "at the end: the files collection equals the one from the start" "" "$(diff "$D/device-files-at-begin.txt" "$D/device-files-at-end.txt" | head -6)"
 layout_save "$D/layout-at-end.json"
 assert_eq "at the end: the layout file equals the one from the start" "same" "$(python3 -c 'import json,sys; print("same" if json.load(open(sys.argv[1])) == json.load(open(sys.argv[2])) else "differs")' "$D/layout-at-begin.json" "$D/layout-at-end.json")"
-assert_eq "at the end: qa-capture installed as at the start" "${QAC_AT_BEGIN:+yes}" "$(q "pm path $QAC" | grep -q . && echo yes)"
+assert_eq "at the end: qa-capture installed as at the start" "${QAC_AT_BEGIN:+yes}" "$(grep -q . <<< "$(q "pm path $QAC")" && echo yes)"
 assert_eq "at the end: start_theme.xml as at the start" "$PREFS_AT_BEGIN" "$(adb shell run-as app.tileshell ls shared_prefs/start_theme.xml >/dev/null 2>&1 && echo present || echo absent)"
 row_end

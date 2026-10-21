@@ -68,7 +68,7 @@ for d in data obb; do
   assert_eq "…in the place of its detail line (no files_detail:$d node)" "no" "$(H 01-android "files_detail:$d")"
   assert_contains "[files] unreadable …/Android/$d in the slice from the MARK before the folder opened" "[files] unreadable $SD/Android/$d" "$SL"
 done
-assert_eq "the control: media is an ordinary row (a files_detail: date, no files_unreadable on it)" "yes|" "$(X 01-android files_detail:media | grep -qE '^[0-9]+/[0-9]+/[0-9]{4}$' && echo yes || echo no)|$(unreadable_on 01-android media)"
+assert_eq "the control: media is an ordinary row (a files_detail: date, no files_unreadable on it)" "yes|" "$(grep -qE '^[0-9]+/[0-9]+/[0-9]{4}$' <<< "$(X 01-android files_detail:media)" && echo yes || echo no)|$(unreadable_on 01-android media)"
 assert_eq "exactly two files_unreadable nodes on the page" "2" "$(grep -o 'resource-id="files_unreadable"' "$ROW_DIR/01-android.xml" | wc -l | xargs)"
 
 for d in data obb; do

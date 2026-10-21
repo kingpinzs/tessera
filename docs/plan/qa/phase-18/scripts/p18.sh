@@ -118,7 +118,9 @@ gdump() { # out.xml
 
 # An absence check that cannot pass on an unreadable ring: the slice must hold a ring line (a `wall=` stamp) first.
 absent_in() { # name needle slice
-  if printf '%s\n' "$3" | grep -q 'wall='; then
+  # A here-string, not printf | grep -q: under pipefail grep -q's early exit SIGPIPEs printf on a slice over 8 KB and
+  # the test fails at random (2026-10-20: 33 of 300 on a 9 KB slice; L18_3's baseline slice of 10 KB failed once).
+  if grep -q 'wall=' <<< "$3"; then
     assert_absent "$1" "$2" "$3"
   else
     _verdict FAIL "$1" "the ring slice is empty or unreadable, so the absence proves nothing"
@@ -139,6 +141,38 @@ c6() {
   sleep 1
   adb shell input keyevent KEYCODE_HOME
   sleep 4
+}
+
+# lib.sh's ensure_start, unchanged in what it decides; when it fails, what was on screen is KEPT (its one dump file is
+# overwritten by the next call): ensure_start-fail-<n>.xml / .png in the row folder and a note naming the top activity,
+# the focused window and Home's resolved activity. (2026-10-20: L18_3's re-run failed "Start alone" once after c6 with
+# nothing left to say why.)
+# Before it decides, two things lib.sh's own steps cannot do (found 2026-10-20, R2_EXP's first run: both failures came
+# right after a force-stop, the kept dump was the Files page of a minute before while Start was the top activity):
+#   * /sdcard/qa.xml is removed first: `uiautomator dump` exits 0 when it cannot get a hierarchy, and dump_ui then read the
+#     PREVIOUS dump's file — a stale screen can fail the check, or pass it;
+#   * after Home, up to 10 s for Start's window to hold the focus: Start cold-starts after a force-stop (process start to
+#     "StartActivity created" took 2 s in L18_3's ring) and lib.sh dumps 1 s after its Home.
+# A Home that resolves elsewhere (the chooser) never takes that focus: the wait runs out and lib.sh's check fails as before.
+eval "_lib_ensure_start() $(declare -f ensure_start | tail -n +2)"
+ensure_start() {
+  local w
+  adb shell rm -f /sdcard/qa.xml >/dev/null 2>&1
+  adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1
+  for w in $(seq 1 20); do
+    # The dump read whole first: a pipe into grep -m1 under pipefail ends in tr's / adb's SIGPIPE, and the loop never broke.
+    grep -m1 'mCurrentFocus=' <<< "$(adb shell dumpsys window | tr -d '\r')" | grep -q 'app.tileshell/app.tileshell.StartActivity' && break
+    sleep 0.5
+  done
+  _lib_ensure_start "$@" && return 0
+  local n=1
+  if [ -n "${ROW_DIR:-}" ]; then
+    while [ -e "$ROW_DIR/ensure_start-fail-$n.xml" ]; do n=$((n + 1)); done
+    cp "$ROW_DIR/.ensure_start.xml" "$ROW_DIR/ensure_start-fail-$n.xml" 2>/dev/null
+    screencap "$ROW_DIR/ensure_start-fail-$n.png" 2>/dev/null
+    [ -n "${LOG:-}" ] && note "ensure_start failed ($n): kept ensure_start-fail-$n.xml/.png; top=$(top_activity) focus=[$(adb shell dumpsys window | tr -d '\r' | grep -m1 mCurrentFocus | xargs)] home=[$(q 'cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME' | tail -1)] dump=[$(head -c 60 "$ROW_DIR/.ensure_start.xml" 2>/dev/null | tr -d '\n')]"
+  fi
+  return 1
 }
 
 # ---- media fixtures: p17.sh:150-213 verbatim (media_scan … media_down). GEN above is this phase's.
@@ -246,7 +280,7 @@ baseline_start() {
   slice="$(ring_since "$mark")"
   printf '%s\n' "$slice" > "$ROW_DIR/baseline-slice.txt"
   # Not a bare absence: the slice must be a readable ring (wall= stamps) that holds the seed's own lines.
-  if printf '%s\n' "$slice" | grep -q 'wall='; then
+  if grep -q 'wall=' <<< "$slice"; then   # a here-string: see absent_in (printf | grep -q under pipefail races)
     assert_eq "after the restore: zero assignSlotOnce … -> assigned lines" "0" "$(printf '%s\n' "$slice" | grep -cE 'assignSlotOnce .* -> assigned')"
     assert_ne "…and the slice does hold the seed's lines (assignSlotOnce … already run / kept)" "0" "$(printf '%s\n' "$slice" | grep -c 'assignSlotOnce')"
   else

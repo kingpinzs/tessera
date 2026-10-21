@@ -28,14 +28,33 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/p18.sh"
 . "$HERE/rowsb.sh"
 LEGS="${*:-1 2 3 4 5 6 7 D2 D3 D5 D6}"
-leg() { case " $LEGS " in *" $1 "*) log "--- experiment $1 ($(date '+%H:%M:%S'))"; return 0 ;; *) return 1 ;; esac; }
+# The kernel caches each SPELLING of a folder as its own FUSE dentry: once `.Teßera` (or `.Tess<ZWSP>era`) has been looked
+# up, removing `.Tessera` leaves that spelling answering with the gone folder's inode, which the next mkdir may reuse —
+# and the reverse. Found on this AVD 2026-10-20 (RESUME-2026-10-20/runner2/probe-r2/stale-alias*.txt; R2_EXP's first run:
+# leg 2's e2b conflict dialog, leg 4's copy of a fresh folder refused "inside the shell's own folder", leg 5's "A folder
+# named .Tessera is in the way" with nothing named so on disk, D2's second inode and "the name is taken"). In a fresh
+# process with fresh caches the shell refused leg 3's folded bin as written (probe-r2/probe3*.log). So every adb-side
+# change to the shell folder's names is followed by a drop of the kernel's dentry / inode caches (root on this
+# userdebug AVD; `echo 2` leaves the page cache alone), and every experiment starts on fresh ones.
+fuse_fresh() { adb shell "su 0 sh -c 'echo 2 > /proc/sys/vm/drop_caches'" >/dev/null 2>&1; }
+leg() { case " $LEGS " in *" $1 "*) log "--- experiment $1 ($(date '+%H:%M:%S'))"; fuse_fresh; return 0 ;; *) return 1 ;; esac; }
 PRIMARY=/storage/emulated/0
 SD=/sdcard
 # The folded spellings pass 2's probe (n2probe.out) showed this AVD's /sdcard resolves onto .Tessera / Android.
 TSS=".Te$(printf '\303\237')era"           # .Teßera (ß = U+00DF)
 TZWSP=".Tess$(printf '\342\200\213')era"    # .Tess<U+200B>era (zero-width space)
 TUPPER=".TESSERA"
-hidden_toggle() { files_at "$PRIMARY"; D ht0; T ht0 files_bar:more 1; D ht1; T ht1 files_more:settings 1.5; D ht2; T ht2 files_setting_hidden 1; adb shell input keyevent KEYCODE_BACK; sleep 1; }
+# The hidden-files setting SET to a state, never toggled blind (2026-10-20: in R2_EXP's first run one toggle landed under
+# leg 2's conflict dialog and missed, the setting stayed on, and the next run's first toggle hid the zip — "the zip is
+# listed: no"). The state is read from the toggle's `checked`, tapped only when it differs, and asserted after.
+hidden_now() { files_at "$PRIMARY"; D ht0; T ht0 files_bar:more 1; D ht1; T ht1 files_more:settings 1.5; D ht2
+  grep -o '<node[^>]*resource-id="files_setting_hidden"[^>]*>' "$ROW_DIR/ht2.xml" | grep -o 'checked="[a-z]*"' | head -1 | cut -d'"' -f2; }
+hidden_set() { # on | off
+  local want=true; [ "$1" = off ] && want=false
+  [ "$(hidden_now)" != "$want" ] && { T ht2 files_setting_hidden 1; D ht2; }
+  assert_eq "2: the hidden-files setting is $1 (files_setting_hidden checked)" "$want" "$(grep -o '<node[^>]*resource-id="files_setting_hidden"[^>]*>' "$ROW_DIR/ht2.xml" | grep -o 'checked="[a-z]*"' | head -1 | cut -d'"' -f2)"
+  adb shell input keyevent KEYCODE_BACK; sleep 1
+}
 
 keep_earlier_run R2_EXP
 row_begin R2_EXP "round 2's device experiments ($LEGS), each asserting its stated safe outcome"
@@ -53,7 +72,7 @@ FOLD_SS="$(lsdev "$SD/$TSS")"; FOLD_ZWSP="$(lsdev "$SD/$TZWSP")"; FOLD_UPPER="$(
 FOLDS=no; [ -n "$FOLD_SS" ] && FOLDS=yes
 record "this AVD's /sdcard folds names (ls -d .Teßera / .Tess<ZWSP>era / .TESSERA after mkdir .Tessera)" \
   "folds=$FOLDS [.Teßera=${FOLD_SS:-no such file}] [.Tess<ZWSP>era=${FOLD_ZWSP:-no such file}] [.TESSERA=${FOLD_UPPER:-no such file}]"
-adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1
+adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1; fuse_fresh
 
 # ------------------------------------------------------------------------------------------------ 1
 if leg 1; then
@@ -83,14 +102,16 @@ with zipfile.ZipFile(sys.argv[1], "w") as z:
     z.writestr("bin/.nomedia", "")
 PY
   extract_at_root() { # dump-prefix
-    hidden_toggle
+    hidden_set on
     files_at "$PRIMARY"; scroll_to_node "$ROW_DIR/$1-0.xml" "files_row:$TSS.zip" >/dev/null
     assert_eq "2 ($1): the zip is listed at the root (hidden shown)" "yes" "$(H "$1-0" "files_row:$TSS.zip")"
     M="$(ring_mark)"; T "$1-0" "files_row:$TSS.zip" 2; D "$1-1"
     if [ "$(H "$1-1" files_extract)" = yes ]; then T "$1-1" files_extract 3; wait_op "$M" 15 >/dev/null; D "$1-2"; else cp "$ROW_DIR/$1-1.xml" "$ROW_DIR/$1-2.xml"; fi
     RSL="$(ring_since "$M")"
     record "2 ($1): the extract line / the page error" "$(printf '%s\n' "$RSL" | grep -o '\[files\] zip extract.*' | sed 's/ *wall=.*//' | tr '\n' '|') / [$(X "$1-2" files_error)]"
-    hidden_toggle
+    # A dialog left open (run 1: a conflict question) is dismissed first, so the setting's page is reached.
+    if [ "$(H "$1-2" files_dialog)" = yes ]; then note "2 ($1): a dialog was open after the extract: [$(X "$1-2" files_dialog_title)] — dismissed with Back"; adb shell input keyevent KEYCODE_BACK; sleep 1; fi
+    hidden_set off
   }
   adb push "$ROW_DIR/Tessera.zip" "$SD/$TSS.zip" >/dev/null 2>&1
   assert_eq "2: /sdcard/.Teßera.zip is pushed" "$SD/$TSS.zip" "$(lsdev "$SD/$TSS.zip")"
@@ -103,7 +124,7 @@ PY
   assert_eq "2: the bin index is unchanged" "$IDX0" "$(md5dev "$BINP/.index.json")"
   assert_eq "2: nothing planted under .Tessera" "0" "$(q "find $SD/.Tessera -name '*planted*' 2>/dev/null" | grep -c .)"
   # Again with no .Tessera present: the same refusal, and an empty .Tessera is left (anchor made it to compare).
-  adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1
+  adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1; fuse_fresh
   extract_at_root e2b
   if [ "$FOLDS" = yes ]; then
     assert_contains "2 (no .Tessera): SAFE — the same refusal, inside the shell's own folder" "failed inside the shell's own folder" "$RSL"
@@ -117,7 +138,7 @@ fi
 
 # ------------------------------------------------------------------------------------------------ 3
 if leg 3; then
-  adb shell "rm -rf $SD/.Tessera; mkdir -p \"$SD/$TSS/bin\"" >/dev/null 2>&1
+  adb shell "rm -rf $SD/.Tessera; mkdir -p \"$SD/$TSS/bin\"" >/dev/null 2>&1; fuse_fresh
   adb shell "printf keep3 > $QF/d3keep.txt" >/dev/null 2>&1
   MD5_K="$(md5dev "$QF/d3keep.txt")"
   files_at "$QF"; scroll_to_node "$ROW_DIR/e3-0.xml" files_row:d3keep.txt >/dev/null; hold e3-0 files_row:d3keep.txt; D e3-1; T e3-1 files_hold:delete 1; D e3-2
@@ -177,7 +198,7 @@ fi
 
 # ------------------------------------------------------------------------------------------------ 6
 if leg 6; then
-  adb shell "rm -rf $SD/.Tessera; printf x > $SD/.Tessera" >/dev/null 2>&1
+  adb shell "rm -rf $SD/.Tessera; printf x > $SD/.Tessera" >/dev/null 2>&1; fuse_fresh
   adb shell "printf keep6 > $QF/d6keep.txt" >/dev/null 2>&1
   MD5_K="$(md5dev "$QF/d6keep.txt")"
   files_at "$QF"; scroll_to_node "$ROW_DIR/e6-0.xml" files_row:d6keep.txt >/dev/null; hold e6-0 files_row:d6keep.txt; D e6-1; T e6-1 files_hold:delete 1; D e6-2
@@ -198,7 +219,7 @@ if leg 7; then
   files_at "$QF/f7"; M="$(ring_mark)"; pick_op copy c.txt .. sub
   wait_op "$M" 20 >/dev/null
   assert_eq "7: a copy on FUSE completes (md5 kept)" "$MD5_C" "$(md5dev "$QF/sub/c.txt")"
-  files_at "$QF/f7"; M="$(ring_mark)"; pick_op move m.txt sub
+  files_at "$QF/f7"; M="$(ring_mark)"; pick_op move m.txt .. sub   # the picker opens in f7: up to QA-Files first (as the copy above)
   wait_op "$M" 20 >/dev/null
   assert_eq "7: a move on FUSE completes (md5 kept, source gone)" "$MD5_M|" "$(md5dev "$QF/sub/m.txt")|$(lsdev "$QF/f7/m.txt")"
   # A no-replace rename onto an existing name: rename c (already in f7 as exists.txt's neighbour) — rename m.txt is gone,
@@ -217,7 +238,7 @@ fi
 
 # ------------------------------------------------------------------------------------------------ D2 (identity, and New folder refusals)
 if leg D2; then
-  adb shell "mkdir -p $SD/.Tessera/bin" >/dev/null 2>&1
+  adb shell "mkdir -p $SD/.Tessera/bin" >/dev/null 2>&1; fuse_fresh
   statline() { q "stat -c '%d:%i' \"$1\" 2>/dev/null"; }
   REAL="$(statline "$SD/.Tessera")"
   for pair in ".Tessera:$SD/.Tessera" ".Teßera:$SD/$TSS" ".Tess<ZWSP>era:$SD/$TZWSP" ".TESSERA:$SD/$TUPPER"; do
@@ -234,7 +255,7 @@ if leg D2; then
     NFSL="$(ring_since "$M")"
     record "D2: new folder $4 at $2 — ring / dialog error" "$(printf '%s\n' "$NFSL" | grep -o '\[files\] new folder.*' | sed 's/ *wall=.*//' | head -1) / [$(X "$3-3" files_error)]"
   }
-  adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1
+  adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1; fuse_fresh
   newfolder_refused "$PRIMARY" "This Device" d2nf "$TSS"
   assert_contains "D2: SAFE — New folder .Teßera at the volume root is refused inside the shell's own folder" "new folder" "$NFSL"
   assert_contains "D2: …with the shell-folder reason" "inside the shell's own folder" "$NFSL"
@@ -339,7 +360,7 @@ fi
 
 # ------------------------------------------------------------------------------------------------ the end
 assert_eq "no crash of the shell in the row (AndroidRuntime)" "0" "$(crash)"
-adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1
+adb shell "rm -rf $SD/.Tessera" >/dev/null 2>&1; fuse_fresh
 adb shell input keyevent KEYCODE_HOME; sleep 1
 files_down
 ensure_start

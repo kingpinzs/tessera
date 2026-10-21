@@ -261,7 +261,7 @@ KS="$(ring_since "$M")"
 assert_eq "K: a tap on a bin row opens nothing — Files stays on top" "$FILES_ACTIVITY" "$(top_activity)"
 D k-tapped
 assert_eq "K: …still the bin page" "Recycle Bin" "$(X k-tapped files_crumb:0)"
-if printf '%s\n' "$KS" | grep -q 'wall='; then assert_absent "K: …and no [files] recent add" "recent add" "$KS"
+if grep -q 'wall=' <<< "$KS"; then assert_absent "K: …and no [files] recent add" "recent add" "$KS"
 else assert_eq "K: …and no [files] recent add (the slice holds no line at all: nothing was logged)" "" "$(printf '%s' "$KS" | grep -F 'recent add')"; fi
 assert_eq "K: the private Recent store is unchanged by the tap" "$R0" "$(recent_json)"
 files_open --es page recent; D k-recent

@@ -217,7 +217,11 @@ else:
 PY
 }
 # Cancel the running operation from its notification (H5: Cancel lives only there): Home, the shade, expand, Cancel.
-notif_cancel() { # dump-prefix
+# With a MARK (the operation's): the tap is checked — when no end line (done | cancelled | failed) follows within 3 s, the
+# shade is opened and Cancel tapped again, up to 3 taps in all, each repeat noted. 2026-10-20, E4 on 23fe18a8: one tap on
+# the found CANCEL [263 1175] of a cross-volume move registered nothing (the progress notification is re-posted every
+# 0.5 s) and the move ran to "done"; the copy's cancel a minute earlier, same place, worked.
+notif_cancel() { # dump-prefix [mark]
   local xy
   local i
   adb shell input keyevent KEYCODE_HOME; sleep 1; adb shell cmd statusbar expand-notifications; sleep 2; gdump "$ROW_DIR/$1-shade0.xml"
@@ -236,6 +240,13 @@ notif_cancel() { # dump-prefix
   # shellcheck disable=SC2086
   [ -n "$xy" ] && adb shell input tap $xy
   sleep 2; adb shell cmd statusbar collapse; sleep 1
+  if [ -n "${2:-}" ] && [ -n "$xy" ]; then
+    for i in 2 3; do
+      grep -qE '\[files\] (zip extract|zip create|copy|move) .*(done|cancelled|failed)' <<< "$(ring_since "$2")" && break
+      note "notif_cancel: no end line 3 s after the tap — Cancel tapped again (tap $i)"
+      notif_cancel "$1-tap$i" >/dev/null || break
+    done
+  fi
   [ -n "$xy" ]
 }
 # The centre of a chooser target by its label (the label sits under its icon): "x y".

@@ -586,7 +586,7 @@ PY
   record "properties: the rows (label=value)" "$ROWS"
   record "properties: the sections" "$SECS"
   for l in "Date modified:" "File type:" "File size:"; do
-    assert_eq "properties: the row \"$l\" has a value" "yes" "$(printf '|%s|' "$ROWS" | grep -qE "\|$l=[^|]+\|" && echo yes || echo no)"
+    assert_eq "properties: the row \"$l\" has a value" "yes" "$(grep -qE "\|$l=[^|]+\|" <<< "|$ROWS|" && echo yes || echo no)"
   done
   assert_contains "properties: File size is the table's (109 KB)" "File size:=109 KB" "$ROWS"
   assert_contains "properties: Date modified is the table's (1/10/2026)" "Date modified:=1/10/2026" "$ROWS"
@@ -623,7 +623,7 @@ fi
 # ------------------------------------------------------------------------------------------------- progress (P2 §1)
 wait_done() { # mark op [seconds]
   local i
-  for i in $(seq 1 "${3:-90}"); do ring_since "$1" | grep -qE "\[files\] $2 .*(done|cancelled|failed)" && break; sleep 1; done
+  for i in $(seq 1 "${3:-90}"); do grep -qE "\[files\] $2 .*(done|cancelled|failed)" <<< "$(ring_since "$1")" && break; sleep 1; done
   sleep 1.5
 }
 if leg progress; then
