@@ -162,6 +162,29 @@ class FileOpsIdentityTest {
         assertEquals(OpResult.Done(listOf(File(docs, "Trip").path)), ops.newFolder(docs, "Trip"))
     }
 
+    /**
+     * P3M15 (pass 3): the volume answers the delete's `mkdirs` with a folder it LISTS under another name — another app
+     * made `.Teßera` between the delete's first look and its `mkdirs`, and the volume folded `.Tessera` onto it.
+     */
+    private class FoldedAfterMkdirs(private val root: File) : FolderNames by FolderNames.Real {
+        private fun real(f: File) = File(f.path.replace("/$sharpName", "/${FilePaths.SHELL_DIR}"))
+        override fun exists(file: File): Boolean = FolderNames.Real.exists(real(file))
+        override fun same(a: File, b: File): Boolean = FolderNames.Real.same(real(a), real(b))
+        override fun names(dir: File): List<String>? =
+            FolderNames.Real.names(dir)?.map { if (dir == root && it == FilePaths.SHELL_DIR) sharpName else it }
+        companion object { const val sharpName = ".Teßera" }
+    }
+
+    @Test
+    fun `a bin folder that mkdirs made under a name the volume lists otherwise is not adopted - the delete fails, the file stays`() {
+        val ops = bed.opsOn(FoldedAfterMkdirs(bed.root))
+        val a = bed.file("Download/a.txt")
+        val r = ops.binDelete(a)
+        assertTrue(r.toString(), r is OpResult.Failed && (r as OpResult.Failed).reason.contains("named $sharp is in the way on ${bed.primary.root}"))
+        assertTrue(a.isFile)
+        assertEquals(emptyList<String>(), bed.names(RecycleBin.binDir(bed.primary)))
+    }
+
     @Test
     fun `a folder the volume folds onto the bin's name is never adopted as the bin - the delete names it`() {
         // Another app made `.Teßera` (with a forged bin in it) before any bin existed.

@@ -257,4 +257,61 @@ class FileOpsDisplaceTest {
         assertFalse(to.exists())
         assertEquals("mine", from.readText())
     }
+
+    // ---- P3-8 (pass 3): the no-replace rename's placeholder
+
+    @Test
+    fun `a failed no-replace rename leaves the placeholder when another writer has filled it - their bytes stay`() {
+        // P3M26: the cleanup removes the placeholder only while it is still the empty one made here.
+        val from = bed.file("A/a.txt", "mine".toByteArray())
+        val to = File(bed.root, "A/b.txt")
+        try {
+            FilePaths.renameNoReplace(from, to) {
+                to.writeText("theirs")
+                from.delete() // and the rename then has nothing to move
+            }
+            fail("renamed a file that was gone")
+        } catch (e: java.nio.file.NoSuchFileException) {
+        }
+        assertEquals("theirs", to.readText())
+    }
+
+    @Test
+    fun `a failed no-replace rename leaves an empty file that is not the placeholder it made - another writer's own`() {
+        val from = bed.file("A/a.txt", "mine".toByteArray())
+        val to = File(bed.root, "A/b.txt")
+        var theirs: Any? = null
+        try {
+            FilePaths.renameNoReplace(from, to) {
+                // Another writer saves its own (empty) b.txt the usual way, temp then rename, over the placeholder.
+                val temp = File(bed.root, "A/.b.txt.tmp").apply { createNewFile() }
+                theirs = Files.readAttributes(temp.toPath(), java.nio.file.attribute.BasicFileAttributes::class.java).fileKey()
+                Files.move(temp.toPath(), to.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                from.delete()
+            }
+            fail("renamed a file that was gone")
+        } catch (e: java.nio.file.NoSuchFileException) {
+        }
+        assertTrue(to.isFile)
+        assertEquals(theirs, Files.readAttributes(to.toPath(), java.nio.file.attribute.BasicFileAttributes::class.java).fileKey())
+    }
+
+    /** The process died here: not an Exception, so nothing catches it or cleans up after it. */
+    private class Killed : Error()
+
+    @Test
+    fun `a kill between the exclusive create and the rename loses nothing and replaces nothing - an empty name is all it leaves`() {
+        // Why this placeholder is not journalled: see FilePaths.renameNoReplace.
+        val from = bed.file("A/a.txt", "mine".toByteArray())
+        val dir = bed.file("A/album/1.jpg", "photo".toByteArray()).parentFile!!
+        val to = File(bed.root, "A/b.txt")
+        val toDir = File(bed.root, "A/album2")
+        try { FilePaths.renameNoReplace(from, to) { throw Killed() }; fail() } catch (e: Killed) { }
+        try { FilePaths.renameNoReplace(dir, toDir) { throw Killed() }; fail() } catch (e: Killed) { }
+        assertEquals("mine", from.readText())
+        assertEquals("photo", File(dir, "1.jpg").readText())
+        assertEquals(0L, to.length())
+        assertEquals(emptyList<String>(), bed.names(toDir))
+        assertEquals(listOf("a.txt", "album", "album2", "b.txt"), bed.names(from.parentFile!!))
+    }
 }

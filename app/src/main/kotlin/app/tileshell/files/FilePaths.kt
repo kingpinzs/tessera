@@ -368,9 +368,18 @@ object FilePaths {
      *  2. [from] is renamed onto that placeholder by ONE `rename(2)` (ATOMIC_MOVE: no copy on another device, no
      *     delete-then-rename). A folder goes only onto an EMPTY folder, so whatever another writer put into the
      *     placeholder meanwhile fails the rename instead of being lost.
-     * A failed step 2 removes the placeholder (only while it is still empty) and leaves [from] where it was.
+     * A failed step 2 removes the placeholder — only while it is still the one made in step 1 (the same file, by device
+     * and inode) and still empty, so what another writer put there, bytes in it or a file of its own renamed into its
+     * place, stays (pass 3, P3M26) — and leaves [from] where it was. (An empty file another writer CREATES there after
+     * deleting the placeholder may take its inode number, and then goes too: it held no byte.)
      * What remains: a writer that OPENS the empty placeholder file between the two steps and writes into it loses those
      * bytes when the rename lands. Nothing that was there before step 1 can be replaced.
+     * A KILL between the two steps leaves the empty placeholder under [to]'s name, and [from] whole where it was; it is
+     * not journalled (pass 3, P3-8), because the sweep (r3 D4) deletes only a temp's NAME, never a name the user owns, and
+     * after a kill an empty placeholder is not told apart from a rename that landed a 0-byte file or an empty folder
+     * without proof that [from] still stands — which every caller (the bin's delete and restore, rename, the sweep's
+     * own finish) would have to journal under an operation it does not have. What it leaves loses no byte and
+     * replaces nothing: an empty name, which the user sees and can delete.
      * [gap] runs between the steps — a test's other writer.
      */
     @Throws(IOException::class)
@@ -380,14 +389,21 @@ object FilePaths {
         if (!existsNoFollow(from)) throw java.nio.file.NoSuchFileException(from.path)
         val folder = isRealDirectory(from)
         if (folder) Files.createDirectory(target) else Files.createFile(target)
+        val made = runCatching { entryKey(target) }.getOrNull()
         try {
             gap()
             Files.move(source, target, StandardCopyOption.ATOMIC_MOVE)
         } catch (e: Exception) {
-            runCatching { if (folder || (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS) && Files.size(target) == 0L)) Files.delete(target) }
+            runCatching {
+                val ours = made == null || entryKey(target) == made
+                if (ours && (folder || (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS) && Files.size(target) == 0L))) Files.delete(target)
+            }
             throw e
         }
     }
+
+    /** The entry's own identity (`lstat`'s device and inode), links not followed; null where the volume has none. */
+    private fun entryKey(path: java.nio.file.Path): Any? = Files.readAttributes(path, BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS).fileKey()
 
     /**
      * Temp-and-rename (LayoutStore's shape): [text] is written to `<name>.tmp` beside [file], synced, and renamed over it,
