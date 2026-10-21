@@ -20,12 +20,14 @@ import java.io.IOException
  *
  * @param dir the app's `filesDir`
  * @param say one `[files]` diagnostics line, without its tag
+ * @param id what the volume answers about names ([FileIdentity]): the bin and the shell's folder are known by identity
  */
 class OpsJournal(
     private val dir: File,
     private val clock: () -> Long,
     private val canonical: (String) -> String?,
     private val say: (String) -> Unit,
+    private val id: FileIdentity = FileIdentity.Real,
 ) {
     /** [to] is set only for a rename's in-between name ([FilePaths.renameName]): the path the file is on its way to. */
     data class Entry(val opId: String, val path: String, val volumeUuid: String, val to: String? = null)
@@ -116,7 +118,7 @@ class OpsJournal(
         if (!FilePaths.isRenameName(temp.name) || FilePaths.volumeOf(e.path, listOf(volume), canonical) == null || inBin(e.path, volume)) return true
         if (!FilePaths.existsNoFollow(temp)) return true
         val dir = temp.parentFile ?: return true
-        if (wanted.parentFile != dir || !FilePaths.validName(wanted.name) || FilePaths.inShellDir(wanted.path, volume, canonical)) return true
+        if (wanted.parentFile != dir || !FilePaths.validName(wanted.name) || FilePaths.inShellDir(wanted.path, volume, canonical, id)) return true
         val dest = if (FilePaths.existsNoFollow(wanted)) FilePaths.keepBoth(dir, wanted.name, FilePaths.isRealDirectory(temp)) else wanted
         return try {
             FilePaths.rename(temp, dest, replace = false)
@@ -134,12 +136,18 @@ class OpsJournal(
         return !inBin(path, volume)
     }
 
+    /**
+     * [path] is the bin or inside it — by FILE IDENTITY (N2's rule; round 3): the path as written and as it resolves, and
+     * every folder above each, asked whether it is the same file as `<volume>/.Tessera/bin` ([FilePaths.within]), so a
+     * name the volume folds onto the bin (`.Teßera/bin`, `.Tessera/BIN`) is the bin. Its text, as written and as
+     * resolved, in any case, still refuses too; a path that cannot be resolved is taken as the bin's.
+     */
     private fun inBin(path: String, volume: FileVolume): Boolean {
         val bin = RecycleBin.binDir(volume).path
         val resolved = runCatching { canonical(path) }.getOrNull() ?: return true
         val binResolved = runCatching { canonical(bin) }.getOrNull() ?: bin
         fun inside(p: String, b: String) = p.equals(b, ignoreCase = true) || p.startsWith("$b/", ignoreCase = true)
-        return inside(path, bin) || inside(resolved, binResolved)
+        return inside(path, bin) || inside(resolved, binResolved) || FilePaths.within(path, File(bin), canonical, id)
     }
 
     private fun write(entries: List<Entry>) {
