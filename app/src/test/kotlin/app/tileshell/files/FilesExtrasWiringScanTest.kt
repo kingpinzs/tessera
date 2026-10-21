@@ -25,6 +25,9 @@ class FilesExtrasWiringScanTest {
     /** A request's own text in a string template: a caller's bytes on their way into a line. */
     private val rawText = Regex("\\$\\{?\\s*(request|asked|pending)\\b[^}\"]*\\.(page|path|name|from)\\b|\\$\\{?\\s*request\\.")
 
+    /** The one use of the `name` extra. */
+    private val nameUse = "showName = request.name?.takeIf { asked.location is FilesLocation.Folder && FilePaths.validName(it) }"
+
     private fun problems(sources: Map<String, String>): List<String> {
         val problems = mutableListOf<String>()
         val activity = sources.getValue("files/FilesActivity.kt")
@@ -36,6 +39,10 @@ class FilesExtrasWiringScanTest {
         if (count(activity, "Diagnostics.add(\"files\", FilesIntents.createdLine(request))") != 1) problems += "the created line is not FilesIntents.createdLine's"
         if (count(state, "say(FilesIntents.openAtLine(asked.location.path, request.from))") != 1) problems += "the open-at line is not FilesIntents.openAtLine's"
         for ((file, text) in sources) rawText.findAll(text).forEach { problems += "$file puts a request's own text into a string: ${it.value}" }
+        // The `name` extra only chooses a row to bring into view: it is used once, and only as a valid name on a folder
+        // page (the GATE review's X5).
+        if (count(state, "request.name") != 1 || count(state, nameUse) != 1) problems += "the name extra is used ${count(state, "request.name")} times, ${count(state, nameUse)} of them through validName on a folder page"
+        if (count(activity, "request.name") != 0) problems += "FilesActivity uses the name extra itself"
         return problems
     }
 
@@ -57,6 +64,12 @@ class FilesExtrasWiringScanTest {
         assertTrue(with(activity, "Diagnostics.add(\"files\", FilesIntents.createdLine(request))", "Diagnostics.add(\"files\", \"FilesActivity created page=\" + request.page)").isNotEmpty())
         // A second place that takes the launch apart.
         assertTrue(with(activity, "pending = requestOf(intent) to false", "pending = FilesRequest(intent.getStringExtra(\"page\"), null) to false").isNotEmpty())
+        // The name extra used as it came (X5), on any page, or a second time beside the guarded use.
+        val state = "files/FilesState.kt"
+        assertTrue(with(state, nameUse, "showName = request.name").isNotEmpty())
+        assertTrue(with(state, nameUse, "showName = request.name?.takeIf { asked.location is FilesLocation.Folder }").isNotEmpty())
+        assertTrue(with(state, nameUse, "showName = request.name?.takeIf { FilePaths.validName(it) }").isNotEmpty())
+        assertTrue(with(state, nameUse, "$nameUse ?: request.name").isNotEmpty())
         // The caller's name written raw into the open-at line.
         assertTrue(with("files/FilesState.kt", "say(FilesIntents.openAtLine(asked.location.path, request.from))", "say(\"open at \${asked.location.path} (from \${request.from})\")").isNotEmpty())
     }
