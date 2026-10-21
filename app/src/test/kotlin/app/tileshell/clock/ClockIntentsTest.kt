@@ -114,8 +114,12 @@ class ClockIntentsTest {
         }
         // The bundle itself of another type, or one whose every read throws (another app's own Parcelable inside it).
         assertNull(open("text").alarm); assertNull(open(7).alarm); assertNull(open(throwing).alarm); assertNull(open(throwing).timer)
-        // A sound the bundle names is still weighed as for a caller nobody can be asked about (L18-2).
+        // A sound the bundle names is still weighed by the API's own rule (L18-2): a file is never a sound. A row of the
+        // user's own volume is one the handler kept, and the shell's bundle keeps it (L18-3: the editor's sound is SKIP_UI's).
         assertEquals(AlarmSound.DEFAULT, open(alarmBundle(ClockIntents.API_SOUND_KIND to "TONE", ClockIntents.API_SOUND_URI to "file:///sdcard/a.mp3")).alarm!!.sound)
+        val row = "content://media/external/audio/media/41"
+        assertEquals(AlarmSound(AlarmSound.Kind.TONE, row, null), open(alarmBundle(ClockIntents.API_SOUND_KIND to "TONE", ClockIntents.API_SOUND_URI to row)).alarm!!.sound)
+        assertNull(open(alarmBundle(ClockIntents.API_SOUND_KIND to "TONE", ClockIntents.API_SOUND_URI to row), stranger).alarm)
     }
 
     @Test fun `no extras of any kind can throw in open - a throwing port opens Clock as it would with none`() {
@@ -141,6 +145,65 @@ class ClockIntentsTest {
         for (id in listOf("", "a b", "a\nb", "../x", "x".repeat(41))) assertNull(id, tab(LiveTileProtocol.EXTRA_LAUNCH_TILE_ID to TileRouting.TIMER_TILE_PREFIX + id).focusedTimer)
         val line = tab(ClockIntents.EXTRA_PAGE to "alarm\n[clock] forged ‮", LiveTileProtocol.EXTRA_LAUNCH_TILE_ID to "x y\r\nz").lines.single()
         assertEquals("open page=alarmclockforged tile=xyz api=none -> tab unchanged", line)
+    }
+
+    // ------------------------------------------------------------------------------------------------ a relaunch (P3-4)
+
+    /**
+     * ClockActivity's intent memory, exactly as the activity keeps it (AlarmSoundWiringScanTest holds that form): it is
+     * singleTask, so a start while it runs is a NEW intent, weighed against that intent's own sender, and it becomes the
+     * activity's intent (`setIntent`) only when the answer says [ClockOpen.keep]. A relaunch — a configuration change the
+     * manifest does not handle (language, bold text) — routes the activity's intent again, against the app that FIRST
+     * launched it: the platform keeps no other sender.
+     */
+    private inner class Clock(private val launcher: Int, private var held: ExtrasPort?) {
+        fun newIntent(extras: ExtrasPort, sender: Int): ClockOpen = ClockIntents.open(extras, sender, shell).also { if (it.keep) held = extras }
+        fun relaunch(): ClockOpen = ClockIntents.open(held, launcher, shell)
+    }
+
+    @Test fun `P3-4 a relaunch never routes a stranger's edit bundle as the shell's`() {
+        // The review's device leg: Clock opened from Start (the shell launches it, no extras); qa-capture's api_edit, ignored;
+        // then a font-weight change relaunches the activity.
+        val clock = Clock(launcher = shell, held = port())
+        val hostile = clock.newIntent(port(ClockIntents.EXTRA_PAGE to "alarm", ClockIntents.EXTRA_API_EDIT to alarmBundle()), stranger)
+        assertNull(hostile.alarm)
+        assertTrue(hostile.lines.contains("api edit ignored: not the shell"))
+        val after = clock.relaunch()
+        assertNull("the relaunch opened the stranger's editor: ${after.lines}", after.alarm)
+        assertEquals(listOf("open page=none tile=none api=none -> tab unchanged"), after.lines)
+        // Any sender but the shell — nobody named (API 34 names no new intent's sender), the system, a uid next to the
+        // shell's — and a bundle whose read throws, a timer's too: not kept, so no relaunch can route it.
+        for (sender in listOf(stranger, ClockIntents.NO_CALLER, 0, 1000, shell + 1)) {
+            for (bundle in listOf<Any?>(alarmBundle(), port(ClockIntents.API_KIND to "timer", ClockIntents.API_TIMER_LENGTH_MS to 60_000L), throwing, "text")) {
+                val c = Clock(launcher = shell, held = port(ClockIntents.EXTRA_PAGE to "timer"))
+                assertFalse("$sender $bundle", c.newIntent(port(ClockIntents.EXTRA_API_EDIT to bundle), sender).keep)
+                val r = c.relaunch()
+                assertNull("$sender $bundle", r.alarm); assertNull("$sender $bundle", r.timer)
+                assertEquals(ClockTab.TIMER, r.tab)
+            }
+        }
+    }
+
+    @Test fun `P3-4 the shell's own hand-off, a tile and a stranger's page still survive a relaunch as they did`() {
+        // AlarmApiActivity starting Clock fresh: the launch intent and its launcher are the shell's — the editor again.
+        assertEquals(6, Clock(launcher = shell, held = port(ClockIntents.EXTRA_API_EDIT to alarmBundle())).relaunch().alarm!!.hour)
+        // The hand-off while Clock runs (opened from Start): its own sender is the shell, so it is kept — the editor again.
+        val running = Clock(launcher = shell, held = port())
+        assertTrue(running.newIntent(port(ClockIntents.EXTRA_API_EDIT to alarmBundle()), shell).keep)
+        assertEquals(6, running.relaunch().alarm!!.hour)
+        // A later intent with no bundle (a tile, a notification, a stranger's page) replaces it, as before: it only chooses a tab.
+        assertTrue(running.newIntent(port(LiveTileProtocol.EXTRA_LAUNCH_TILE_ID to TileRouting.STOPWATCH_TILE_ID), shell).keep)
+        assertNull(running.relaunch().alarm); assertEquals(ClockTab.STOPWATCH, running.relaunch().tab)
+        assertTrue(running.newIntent(port(ClockIntents.EXTRA_PAGE to "world_clock"), stranger).keep)
+        assertEquals(ClockTab.WORLD_CLOCK, running.relaunch().tab)
+        // The shell's hand-off into a Clock a stranger first launched: kept, but weighed against that launcher, so not
+        // honoured on a relaunch (fail-closed, as before) — never a stranger's bundle honoured.
+        val strangers = Clock(launcher = ClockIntents.NO_CALLER, held = port())
+        assertTrue(strangers.newIntent(port(ClockIntents.EXTRA_API_EDIT to alarmBundle()), shell).keep)
+        assertNull(strangers.relaunch().alarm)
+        // The launch path itself never consults the answer: a stranger's launch with a bundle is ignored at launch and on
+        // every relaunch, its launcher being that stranger.
+        assertNull(Clock(launcher = stranger, held = port(ClockIntents.EXTRA_API_EDIT to alarmBundle())).relaunch().alarm)
     }
 
     // ------------------------------------------------------------------------------------------------ AlarmApiActivity

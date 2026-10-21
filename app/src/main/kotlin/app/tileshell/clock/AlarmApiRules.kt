@@ -56,9 +56,10 @@ object AlarmApiRules {
 
     /**
      * What an alarm request carries once validated. [soundRefused] is why the ringtone it asked for was not kept and
-     * the default sound stands in its place ([AlarmRingtoneRules]), else null.
+     * the default sound stands in its place ([AlarmRingtoneRules]), else null; [soundLine] is the handler's line about
+     * the ringtone ([AlarmRingtoneRules.FromApi.line]), else null.
      */
-    data class AlarmFields(val hour: Int?, val minute: Int, val days: Set<DayOfWeek>, val message: String, val sound: AlarmSound, val soundRefused: String? = null)
+    data class AlarmFields(val hour: Int?, val minute: Int, val days: Set<DayOfWeek>, val message: String, val sound: AlarmSound, val soundRefused: String? = null, val soundLine: String? = null)
 
     sealed interface Request {
         /** `EXTRA_SKIP_UI`: the alarm is created and switched on. [fields].hour is never null here. */
@@ -105,8 +106,8 @@ object AlarmApiRules {
                     if (!dayOk(d)) return Request.Refused("days out of range")
                     DayOfWeek.of((d + 5) % 7 + 1)
                 }.toSet()
-                val tone = AlarmRingtoneRules.fromApi(ringtone, access)
-                val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)
+                val tone = AlarmRingtoneRules.fromApi(ringtone, AlarmRingtoneRules.Caller.Ask(access))
+                val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused, tone.line)
                 // No hour: the API says the app's UI should open for the user to pick one, SKIP_UI or not.
                 if (hour == null || !skipUi) Request.EditAlarm(fields) else Request.CreateAlarm(fields)
             }

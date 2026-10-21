@@ -246,17 +246,25 @@ class ClockActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        setIntent(intent)
         // Before Android 15 the platform does not say who sent a NEW intent to a running activity, so its edit bundle
         // has no shell to be from (as MusicActivity's play extra).
-        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) route(intent, ClockIntents.NO_CALLER)
+        if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) keepIf(route(intent, ClockIntents.NO_CALLER), intent)
     }
 
     /** Android 15+: the new intent comes with its own caller, so the edit bundle is weighed against THIS intent's sender. */
     @RequiresApi(Build.VERSION_CODES.VANILLA_ICE_CREAM)
     override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
         super.onNewIntent(intent, caller)
-        route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })
+        keepIf(route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER }), intent)
+    }
+
+    /**
+     * Ledger L18-3, the third pass's P3-4: a relaunch (a configuration change the manifest does not handle) routes the
+     * activity's intent again, against the app that FIRST launched it — so a new intent becomes the activity's own only
+     * when its own answer says a relaunch cannot honour a bundle its sender could not give ([ClockOpen.keep]).
+     */
+    private fun keepIf(open: ClockOpen, intent: Intent) {
+        if (open.keep) setIntent(intent) else Diagnostics.add("clock", ClockIntents.NOT_KEPT)
     }
 
     override fun onResume() {
@@ -275,13 +283,14 @@ class ClockActivity : ComponentActivity() {
      * (ledger L18-3): this activity is exported, so every extra is read there through the reader that cannot throw, and
      * the edit bundle is honoured only when [callerUid], the uid that sent this intent, is the shell's own.
      */
-    private fun route(intent: Intent?, callerUid: Int) {
+    private fun route(intent: Intent?, callerUid: Int): ClockOpen {
         val open = ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid())
         open.focusedTimer?.let { nav.focusedTimer = it }
         open.tab?.let { nav.show(it) }
         open.timer?.let { nav.openTimerEditor(it) }
         open.alarm?.let { nav.openAlarmEditor(it) }
         open.lines.forEach { Diagnostics.add("clock", it) }
+        return open
     }
 
     private fun goHome() {

@@ -126,7 +126,7 @@ class AlarmApiRulesTest {
         }
         // The alarm itself is made exactly as asked, and says why its sound is the default.
         val r = alarm(ringtone = "file:///storage/emulated/0/Documents/private-memo.m4a") as Request.CreateAlarm
-        assertEquals(AlarmApiRules.AlarmFields(6, 45, emptySet(), "Gym", AlarmSound.DEFAULT, AlarmRingtoneRules.WHY_NOT_CONTENT), r.fields)
+        assertEquals(AlarmApiRules.AlarmFields(6, 45, emptySet(), "Gym", AlarmSound.DEFAULT, AlarmRingtoneRules.WHY_NOT_CONTENT, "api ringtone not kept (not a content uri) -> default sound"), r.fields)
         assertEquals(null, (alarm(ringtone = "content://media/internal/audio/media/7") as Request.CreateAlarm).fields.soundRefused)
         // The word the handler logs names the class of what was wrong, and a shell provider is named as one.
         fun why(ringtone: String) = (alarm(ringtone = ringtone) as Request.CreateAlarm).fields.soundRefused
@@ -160,6 +160,75 @@ class AlarmApiRulesTest {
         assertEquals(AlarmSound.Kind.TONE, sound("content://media/internal/audio/media/7", access = silent).kind)
         assertEquals(AlarmSound.Kind.TONE, sound("content://settings/system/alarm_alert", access = null).kind)
         assertEquals(emptyList<String>(), silent.asked)
+    }
+
+    private fun fields(r: Request): AlarmApiRules.AlarmFields = when (r) {
+        is Request.CreateAlarm -> r.fields
+        is Request.EditAlarm -> r.fields
+        else -> throw AssertionError("the alarm was refused: $r")
+    }
+
+    /** A platform whose [at] question throws [thrown] itself (not handed back as an answer); the rest answer as [base]. */
+    private class Throwing(val at: String, val thrown: () -> Throwable, val base: FakeUriAccess = FakeUriAccess(launchedFrom = Platform.Said(FakeUriAccess.CALLER))) : UriAccessPort {
+        private fun <T> t(name: String, answer: () -> T): T = if (name == at) throw thrown() else answer()
+        override val apiLevel: Int get() = t("apiLevel") { base.apiLevel }
+        override fun shellUid() = t("shellUid") { base.shellUid() }
+        override fun uidOf(packageName: String) = t("uidOf") { base.uidOf(packageName) }
+        override fun provider(authority: String) = t("provider") { base.provider(authority) }
+        override fun holdsGrant(uri: String, uid: Int, modeFlag: Int) = t("holdsGrant") { base.holdsGrant(uri, uid, modeFlag) }
+        override fun providerSays(uri: String, uid: Int, modeFlag: Int) = t("providerSays") { base.providerSays(uri, uid, modeFlag) }
+        override fun launchAnswer(uri: String, modeFlag: Int) = t("launchAnswer") { base.launchAnswer(uri, modeFlag) }
+        override fun launchedFromUid() = t("launchedFromUid") { base.launchedFromUid() }
+        override fun nameOfUid(uid: Int) = t("nameOfUid") { base.nameOfUid(uid) }
+    }
+
+    /**
+     * Ledger L18-3, the adversarial review's N12: on API 35+ the handler asks the platform's launch answer about a URI
+     * that arrived as a STRING extra (EXTRA_RINGTONE), and the platform says it throws for a URI the launch intent did
+     * not carry — so it likely throws for every such ringtone (fail-closed; unverified until a device records it,
+     * l18_3.sh leg d). Whatever the platform does, the handler neither crashes nor keeps a row the caller could not be
+     * shown to read, and its line says what the platform answered.
+     */
+    @Test fun `N12 a launch answer that throws keeps nothing, crashes nothing, and the line names what was thrown`() {
+        val row = "content://media/external/audio/media/41"
+        // The real port's form (media/AndroidUriAccess): the platform's throw handed back as its class.
+        for (thrown in listOf("IllegalArgumentException", "SecurityException")) {
+            val access = FakeUriAccess(launchAnswer = { _, _ -> Platform.Threw(thrown) })
+            for (skipUi in listOf(true, false)) {
+                val f = fields(alarm(ringtone = row, skipUi = skipUi, access = access))
+                assertEquals(AlarmSound.DEFAULT, f.sound)
+                assertEquals("api ringtone not kept (the caller could not read it; launch answer read: threw $thrown) -> default sound", f.soundLine)
+            }
+        }
+    }
+
+    @Test fun `N12 a port that throws itself, from any question the rule asks, keeps nothing and crashes nothing`() {
+        val row = "content://media/external/audio/media/41"
+        // The real port catches every throw (UriAccessWiringScanTest holds that form); the clock's rule does not lean on it:
+        // nothing a port throws may reach the launcher's process from the handler.
+        for (thrown in listOf<() -> Throwable>({ SecurityException("x") }, { IllegalArgumentException("x") })) {
+            for (at in listOf("launchAnswer", "launchedFromUid", "provider", "holdsGrant", "providerSays", "apiLevel")) {
+                for (skipUi in listOf(true, false)) {
+                    val f = fields(alarm(ringtone = row, skipUi = skipUi, access = Throwing(at, thrown)))
+                    assertEquals(at, AlarmSound.DEFAULT, f.sound)
+                    assertEquals(at, "api ringtone not kept (the caller could not read it; the check threw ${thrown().javaClass.simpleName}) -> default sound", f.soundLine)
+                }
+            }
+        }
+    }
+
+    @Test fun `N12 the line says what the platform answered when it was asked, and nothing when it was not`() {
+        val row = "content://media/external/audio/media/41"
+        fun line(access: UriAccessPort?, ringtone: String? = row) = fields(alarm(ringtone = ringtone, access = access)).soundLine
+        assertEquals("api ringtone kept (it had access at launch; launch answer read: granted)", line(FakeUriAccess(launchAnswer = { _, _ -> FakeUriAccess.YES })))
+        assertEquals("api ringtone kept (the provider allows it; launch answer read: not asked)",
+            line(FakeUriAccess(launchedFrom = Platform.Said(FakeUriAccess.CALLER), providerAnswer = { _, uid, _ -> if (uid == FakeUriAccess.CALLER) FakeUriAccess.YES else FakeUriAccess.NO })))
+        assertEquals("api ringtone not kept (the caller could not read it; launch answer read: denied) -> default sound", line(nobody))
+        assertEquals("api ringtone not kept (the caller could not read it; launch answer read: not available) -> default sound", line(FakeUriAccess(apiLevel = 34)))
+        assertEquals("api ringtone not kept (the caller could not read it) -> default sound", line(null))
+        // Not asked at all: a sound every app can read, none, Vibrate only — no line; any other form, the refusal's line.
+        for (quiet in listOf("content://media/internal/audio/media/7", "content://settings/system/alarm_alert", null, "", "silent")) assertEquals(quiet, null, line(nobody, quiet))
+        assertEquals("api ringtone not kept (not a content uri) -> default sound", line(nobody, "file:///storage/emulated/0/a.mp3"))
     }
 
     @Test fun setTimerCreatesOpensOrRefuses() {

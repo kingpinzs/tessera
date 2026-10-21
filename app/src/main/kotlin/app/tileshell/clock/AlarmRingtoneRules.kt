@@ -19,6 +19,11 @@ import app.tileshell.media.UriAccessRules
  *  - `content://media/<volume>/audio/media/<id>` on any other volume (a ringtone the user added): only when the
  *    platform says the app that started the handler could read that row itself — the same question, asked of the same
  *    port, as the exported viewer and player ask ([UriAccessRules.starterMayRead]).
+ * It is ONE rule for both of the API's paths (ledger L18-3): with `EXTRA_SKIP_UI` the handler stores its answer; without
+ * it the editor opens filled in from the handler's bundle, and weighs that bundle's sound by this same rule, the
+ * caller's question answered by the handler that asked it ([Caller.AskedByHandler]). So the alarm the editor opens has
+ * the sound the alarm made with SKIP_UI would have had (phase 15 T15-37: "without `EXTRA_SKIP_UI` it opens the editor
+ * filled in, with it the item is created").
  * Anything else — a `file:` URI, a bare path, `http(s):`, another scheme, another provider, any authority of the
  * shell's own, a user-id authority, an odd path — becomes the DEFAULT sound. The alarm is still made: an app that
  * passes an odd ringtone asked for an alarm, and gets one.
@@ -37,15 +42,43 @@ object AlarmRingtoneRules {
     const val WHY_NOT_SOUND = "not a system sound"
     const val WHY_CALLER = "the caller could not read it"
 
-    /** [refused] is why the ringtone asked for was not kept (a diagnostics word, never the caller's text), else null. */
-    data class FromApi(val sound: AlarmSound, val refused: String? = null)
+    /**
+     * [refused] is why the ringtone asked for was not kept (a diagnostics word, never the caller's text), else null;
+     * [asked] is what the platform answered when it was asked about the caller (ledger L18-3, N12), else null.
+     */
+    data class FromApi(val sound: AlarmSound, val refused: String? = null, val asked: String? = null) {
+        /**
+         * The handler's diagnostics line for this answer, or null when there is nothing to say: `api ringtone not kept
+         * (<why>[; <asked>]) -> default sound`, or `api ringtone kept (<asked>)` for a row kept on the platform's word.
+         */
+        val line: String? get() = when {
+            refused != null -> "api ringtone not kept (${listOfNotNull(refused, asked).joinToString("; ")}) -> default sound"
+            asked != null -> "api ringtone kept ($asked)"
+            else -> null
+        }
+    }
+
+    /** Who answers [fromApi]'s one question that depends on where it is asked: could the app that named a row of the user's own volume read it? */
+    sealed interface Caller {
+        /**
+         * The API handler: asked of [access], the platform port of the activity the caller started; null when nobody can be
+         * asked about the caller — then only the sounds every app can read are kept.
+         */
+        data class Ask(val access: UriAccessPort?) : Caller
+
+        /**
+         * The editor, for the handler's hand-off bundle — honoured only when the shell itself sent it (`ClockIntents.open`):
+         * the handler asked the platform, and its bundle names a row only when the answer was yes. Every other check is
+         * made again.
+         */
+        data object AskedByHandler : Caller
+    }
 
     /**
      * @param ringtone `AlarmClock.EXTRA_RINGTONE` as it arrived: null, blank, "silent", or what should be a content URI
-     * @param access the platform port of the activity the caller started, or null when nobody can be asked about the
-     *   caller — then only the sounds every app can read are kept
+     * @param caller who answers whether the caller could read a row of the user's own volume ([Caller])
      */
-    fun fromApi(ringtone: String?, access: UriAccessPort?): FromApi {
+    fun fromApi(ringtone: String?, caller: Caller): FromApi {
         if (ringtone == null || ringtone.isBlank()) return FromApi(AlarmSound.DEFAULT)
         if (ringtone == AlarmApiRules.RINGTONE_SILENT) return FromApi(AlarmSound(AlarmSound.Kind.VIBRATE))
         val uri = ContentUriText.parse(ringtone)
@@ -57,10 +90,29 @@ object AlarmRingtoneRules {
             "media" -> when {
                 INTERNAL_SOUND.matches(rest) -> kept
                 !VOLUME_SOUND.matches(rest) -> FromApi(AlarmSound.DEFAULT, WHY_NOT_SOUND)
-                access != null && UriAccessRules.starterMayRead(access, uri).allowed -> kept
-                else -> FromApi(AlarmSound.DEFAULT, WHY_CALLER)
+                else -> callerMayRead(caller, uri).let { (yes, asked) -> if (yes) kept.copy(asked = asked) else FromApi(AlarmSound.DEFAULT, WHY_CALLER, asked) }
             }
             else -> FromApi(AlarmSound.DEFAULT, WHY_NOT_SOUND)
+        }
+    }
+
+    /**
+     * Whether the caller may read [uri], and what the platform answered (null: it was not asked). Ledger L18-3, N12: on
+     * API 35+ the launch answer is asked about a URI that came as a string extra, which the platform may answer with a
+     * throw — handed back by the real port as its class, so "no". A port that throws itself is "no" too: nothing it
+     * throws reaches the launcher's process.
+     */
+    private fun callerMayRead(caller: Caller, uri: ContentUriText): Pair<Boolean, String?> = when (caller) {
+        Caller.AskedByHandler -> true to null
+        is Caller.Ask -> when (val access = caller.access) {
+            null -> false to null
+            else -> try {
+                val read = UriAccessRules.starterMayRead(access, uri)
+                val launch = UriAccessRules.launchLine(UriAccessRules.READ, read.launch)
+                read.allowed to (if (read.allowed) "${read.why.word}; $launch" else launch)
+            } catch (e: Throwable) {
+                false to "the check threw ${UriAccessRules.className(e.javaClass.simpleName.orEmpty())}"
+            }
         }
     }
 
