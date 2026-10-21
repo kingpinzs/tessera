@@ -28,6 +28,8 @@ import org.junit.Test
  *    shell's own controller and for nobody else — and PLAY_FILE is the shell's alone, through the provider's own rule.
  *  - (ledger L18-4) every list the session hands the player starts where `MusicQueueStart` says — an index the final
  *    list has — or the request is refused before the player is touched.
+ *  - (ledger L18-5) the session is built on `BoundedIndexPlayer`, which refuses any index a controller sends that the
+ *    list does not have; the crossfade and the stream watch keep their own players.
  *  - (phase 20, r3 D1) a station's or a home-server track's item is built by its ONE builder and nowhere else under
  *    `music/`, after its URL rule accepted the address; the session finds a station only for the shell's own
  *    controller (`RadioSearchRule`); and items reach a player under `music/` only at the sites held here.
@@ -435,7 +437,8 @@ class UriAccessWiringScanTest {
      *    network gate, `stationItems`, `MusicQueueStart.search` over the list that was built;
      *  - items are set on a player under `music/` at four sites: the session's `playFile`, Music's own queue of
      *    library tracks, Music's own queue of the two builders' items, and the crossfade's fader (the primary's own
-     *    next item). `MusicPlayer.playStations` is its one form, the gate's refusal returned before anything is built.
+     *    next item) — and the session's player (`BoundedIndexPlayer`, L18-5), which passes on unchanged what the session
+     *    decided. `MusicPlayer.playStations` is its one form, the gate's refusal returned before anything is built.
      */
     private fun stationProblems(sources: Map<String, String>): List<String> {
         val problems = mutableListOf<String>()
@@ -502,9 +505,11 @@ class UriAccessWiringScanTest {
         val planners = where("StationStart.plan(")
         if (planners != mapOf("music/MusicService.kt" to 1, "music/MusicPlayer.kt" to 1, "cortana/action/ActionLayer.kt" to 1)) problems += "a station start is planned somewhere else: $planners"
 
-        // Items reach a player under music/ at these sites and no other.
+        // Items reach a player under music/ at these sites and no other. The session's player (L18-5) passes on, with
+        // their own arguments, the adds and replaces the session's callbacks decided: its four overrides, each with its
+        // super call and the name in its refusal line — the same item, unchanged, is BoundedIndexPlayerTest's.
         val sets = where(Regex("\\b(?:set|add|replace)MediaItems?\\s*\\("), music)
-        if (sets != mapOf("music/MusicService.kt" to 1, "music/MusicPlayer.kt" to 2, "music/CrossfadeFader.kt" to 1) ||
+        if (sets != mapOf("music/MusicService.kt" to 1, "music/MusicPlayer.kt" to 2, "music/CrossfadeFader.kt" to 1, "music/BoundedIndexPlayer.kt" to 12) ||
             !player.contains("c.setMediaItems(queue.map { MusicService.mediaItem(it) }, startIndex, 0L)") || !player.contains("c.setMediaItems(own.items, own.start, 0L)") ||
             !sources["music/CrossfadeFader.kt"].orEmpty().contains("val next = primary.getMediaItemAt(primary.nextMediaItemIndex)") || !sources["music/CrossfadeFader.kt"].orEmpty().contains("f.setMediaItem(next)")
         ) problems += "an item is set on a player under music/ outside the four sites: $sets"
@@ -1041,6 +1046,65 @@ class UriAccessWiringScanTest {
         assertTrue(service("\"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": nothing in the library\"", "\"search \\\"\$query\\\": nothing in the library\"").isNotEmpty())
         assertTrue(service("\"search \\\"\${MusicQueueStart.lineQuery(query)}\\\": \${match.kind.name.lowercase()}", "\"search \\\"\$query\\\": \${match.kind.name.lowercase()}").isNotEmpty())
         assertTrue(service("UnsupportedOperationException(\"no match in the library\")", "UnsupportedOperationException(\"no match for \\\"\$query\\\"\")").isNotEmpty())
+    }
+
+    // ---------------------------------------------------------------------------------------- Music's queue indices (L18-5)
+
+    /** The session's one build: on the bound, over the player every consumer sees, with the uid of the controller it is serving. */
+    private val sessionPlayerForm = "session = MediaSession.Builder(this, BoundedIndexPlayer(known) { session?.controllerForCurrentRequest?.uid })" +
+        ".setId(TileRouting.MUSIC_SESSION_ID).setCallback(callback).build()"
+
+    /**
+     * Ledger L18-5 (the adversarial review's pass 3, P3-1; RUN on the emulator): any app's controller reaches Music's
+     * exported session, and Media3 1.9.0 hands a controller's index on to the player with no more than a `< 0` check of
+     * its own — a legacy `skipToQueueItem(2^31)` became `seekToDefaultPosition(Int.MIN_VALUE)`, and ExoPlayer's throw on
+     * the main thread killed the launcher. `MusicIndexRule` is the rule (`MusicIndexRuleTest`) and `BoundedIndexPlayer`
+     * asks it for every index-taking command (`BoundedIndexPlayerTest`, over the real KnownDurationPlayer); held here is
+     * what no unit test runs:
+     *  - the session is built on `BoundedIndexPlayer` over `known` — the player every consumer sees — and the uid in its
+     *    line is the one the session reports for the controller it is serving;
+     *  - nothing else is handed the bound: the crossfade drives `known` and the stream watch the ExoPlayer, with
+     *    indices of their own, exactly as before; no other `BoundedIndexPlayer` is made, and nothing else asks the rule.
+     */
+    private fun indexProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val service = sources["music/MusicService.kt"].orEmpty()
+        if (count(service, sessionPlayerForm) != 1 || count(service, "MediaSession.Builder(") != 1) {
+            problems += "the session is not built on BoundedIndexPlayer over the known-duration player, with the serving controller's uid"
+        }
+        val made = sources.mapValues { (_, text) -> Regex("\\bBoundedIndexPlayer\\s*\\(").findAll(text).count() }.filterValues { it > 0 }
+        if (made != mapOf("music/MusicService.kt" to 1, "music/BoundedIndexPlayer.kt" to 1)) problems += "a BoundedIndexPlayer is made somewhere other than the session's build: $made"
+        if (!service.contains("val known = KnownDurationPlayer(exo) { stationLogo(it) }") || Regex("\\bKnownDurationPlayer\\s*\\(").findAll(service).count() != 1 ||
+            !service.contains("crossfade = CrossfadeFader(this, known, audioSession, mediaSourceFactory, attributes)") ||
+            !service.contains("stream = StreamWatch(this, exo, handler) { publishExtras() }")
+        ) problems += "the crossfade or the stream watch is handed a player other than its own"
+        val askers = sources.mapValues { (_, text) -> count(text, "MusicIndexRule.") }.filterValues { it > 0 }
+        if (askers.keys != setOf("music/BoundedIndexPlayer.kt")) problems += "the index rule is asked somewhere other than the session's player: $askers"
+        return problems
+    }
+
+    @Test fun `L18-5 the session is built on the player that refuses an index its list does not have, and nothing else is`() {
+        val sources = SourceScan.all()
+        assertEquals(emptyList<String>(), indexProblems(sources))
+        assertTrue(sources.getValue("music/BoundedIndexPlayer.kt").length > 200)
+        assertEquals(1, count(sources.getValue("music/MusicService.kt"), sessionPlayerForm))
+    }
+
+    @Test fun `L18-5 a session on the bare player, a made-up caller, the bound handed to the crossfade, or a second bound is caught`() {
+        val sources = SourceScan.all()
+        fun service(old: String, new: String) = indexProblems(sources + ("music/MusicService.kt" to mutate(sources.getValue("music/MusicService.kt"), old, new)))
+        fun added(file: String, code: String) = indexProblems(sources + (file to sources.getValue(file) + " " + code))
+        // The defect itself (P3-1): the session on the known-duration player, as it was; or on the ExoPlayer under it.
+        assertTrue(service("MediaSession.Builder(this, BoundedIndexPlayer(known) { session?.controllerForCurrentRequest?.uid })", "MediaSession.Builder(this, known)").isNotEmpty())
+        assertTrue(service("BoundedIndexPlayer(known) {", "BoundedIndexPlayer(exo) {").isNotEmpty())
+        // A uid the session did not report for the controller it is serving.
+        assertTrue(service("{ session?.controllerForCurrentRequest?.uid }", "{ Process.myUid() }").isNotEmpty())
+        assertTrue(service("{ session?.controllerForCurrentRequest?.uid }", "{ null }").isNotEmpty())
+        // The crossfade or the stream watch handed the bound (their own seeks would be weighed), or the session built twice.
+        assertTrue(service("CrossfadeFader(this, known,", "CrossfadeFader(this, BoundedIndexPlayer(known) { null },").isNotEmpty())
+        assertTrue(service("StreamWatch(this, exo, handler)", "StreamWatch(this, known, handler)").isNotEmpty())
+        assertTrue(added("music/MusicPlayer.kt", "fun x(p: androidx.media3.common.Player) = BoundedIndexPlayer(p) { 0 }").isNotEmpty())
+        assertTrue(added("music/CrossfadeFader.kt", "fun x(i: Int, n: Int) = MusicIndexRule.item(i, n)").isNotEmpty())
     }
 
     // ---------------------------------------------------------------------------------------------- the capture answer
