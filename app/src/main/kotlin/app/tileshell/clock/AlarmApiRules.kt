@@ -105,7 +105,7 @@ object AlarmApiRules {
                     if (!dayOk(d)) return Request.Refused("days out of range")
                     DayOfWeek.of((d + 5) % 7 + 1)
                 }.toSet()
-                val tone = AlarmRingtoneRules.fromApi(ringtone, access)
+                val tone = AlarmRingtoneRules.fromApi(ringtone, AlarmRingtoneRules.Caller.Ask(access))
                 val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)
                 // No hour: the API says the app's UI should open for the user to pick one, SKIP_UI or not.
                 if (hour == null || !skipUi) Request.EditAlarm(fields) else Request.CreateAlarm(fields)

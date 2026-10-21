@@ -114,8 +114,12 @@ class ClockIntentsTest {
         }
         // The bundle itself of another type, or one whose every read throws (another app's own Parcelable inside it).
         assertNull(open("text").alarm); assertNull(open(7).alarm); assertNull(open(throwing).alarm); assertNull(open(throwing).timer)
-        // A sound the bundle names is still weighed as for a caller nobody can be asked about (L18-2).
+        // A sound the bundle names is still weighed by the API's own rule (L18-2): a file is never a sound. A row of the
+        // user's own volume is one the handler kept, and the shell's bundle keeps it (L18-3: the editor's sound is SKIP_UI's).
         assertEquals(AlarmSound.DEFAULT, open(alarmBundle(ClockIntents.API_SOUND_KIND to "TONE", ClockIntents.API_SOUND_URI to "file:///sdcard/a.mp3")).alarm!!.sound)
+        val row = "content://media/external/audio/media/41"
+        assertEquals(AlarmSound(AlarmSound.Kind.TONE, row, null), open(alarmBundle(ClockIntents.API_SOUND_KIND to "TONE", ClockIntents.API_SOUND_URI to row)).alarm!!.sound)
+        assertNull(open(alarmBundle(ClockIntents.API_SOUND_KIND to "TONE", ClockIntents.API_SOUND_URI to row), stranger).alarm)
     }
 
     @Test fun `no extras of any kind can throw in open - a throwing port opens Clock as it would with none`() {

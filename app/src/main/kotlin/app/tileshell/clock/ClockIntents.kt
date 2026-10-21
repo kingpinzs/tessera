@@ -87,8 +87,10 @@ data class ClockOpen(
  *  - `api_edit`, the bundle [AlarmApiActivity] hands over for a request without SKIP_UI, opens an editor FILLED IN. It
  *    is honoured only when the uid that sent this very intent is the shell's own — for anyone else it is not even
  *    read — and, whoever sent it, each field must pass the checks the API handler applies ([AlarmApiRules]: hour
- *    0..23, minute 0..59, days 1..7, the message's length and control characters, a timer length within the ceiling).
- *    A bundle with one bad field is ignored whole. Nothing is stored until the user saves.
+ *    0..23, minute 0..59, days 1..7, the message's length and control characters, a timer length within the ceiling)
+ *    and its sound is weighed by the API's own ringtone rule (`AlarmRingtoneRules.fromApi`, the caller's question
+ *    answered by the handler that asked it). A bundle with one bad field is ignored whole. Nothing is stored until the
+ *    user saves.
  *
  * Every extra is read through [SafeExtras], so no intent can throw here. Pure: `ClockIntentsTest`.
  */
@@ -193,9 +195,10 @@ object ClockIntents {
                 if (days.any { !AlarmApiRules.dayOk(it) }) return Edit.Ignored("days out of range")
                 val sound = when (soundKind) {
                     AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)
-                    // L18-2: the sound the bundle names is weighed again, as for a caller nobody can be asked about: a
-                    // sound every app can read, else the default.
-                    AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, null).sound
+                    // L18-2 / L18-3: the sound the bundle names is weighed again by the API's own rule — every check made
+                    // again, the caller's question answered by the handler that asked it — so the editor opens with the
+                    // sound SKIP_UI would have stored.
+                    AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, AlarmRingtoneRules.Caller.AskedByHandler).sound
                     else -> AlarmSound.DEFAULT
                 }
                 val base = AlarmDraft.new()

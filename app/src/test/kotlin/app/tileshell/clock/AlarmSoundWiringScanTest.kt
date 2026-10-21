@@ -14,7 +14,9 @@ import org.junit.Test
  * that hands them the real request and does what they say. Held here:
  *  - the API handler hands `AlarmApiRules.parse` the caller's ringtone and the REAL platform port of the activity the
  *    caller started, and stores the sound the rule answered — never the extra itself;
- *  - the editor's hand-off bundle (ClockActivity is exported) has its sound weighed again, with nobody to ask;
+ *  - the editor's hand-off bundle (ClockActivity is exported) has its sound weighed again by the same rule, the caller's
+ *    question answered by the handler that asked it — and only there, after the bundle is known to be the shell's
+ *    (ledger L18-3: one rule for both of the API's paths);
  *  - the ring asks `AlarmRingtoneRules.sinkRefusal` before it opens or plays a stored URI, and a refusal is the default
  *    sound; a stored URI is opened in that one function and nowhere else in the clock (the Sounds page previews the
  *    rows of its own list).
@@ -52,12 +54,15 @@ class AlarmSoundWiringScanTest {
         ) problems += "the handler stores or hands on a sound other than the rule's"
         // The rule's side: the ringtone becomes a sound only through AlarmRingtoneRules.fromApi, asked with that port.
         if (Regex("\\bringtone\\b").findAll(rules).count() != 2 || Regex("\\baccess\\b").findAll(rules).count() != 2 || count(rules, "AlarmSound(") != 0 ||
-            !rules.contains("val tone = AlarmRingtoneRules.fromApi(ringtone, access) val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)")
-        ) problems += "AlarmApiRules does not make the ringtone a sound through AlarmRingtoneRules.fromApi(ringtone, access)"
+            !rules.contains("val tone = AlarmRingtoneRules.fromApi(ringtone, AlarmRingtoneRules.Caller.Ask(access)) val fields = AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)")
+        ) problems += "AlarmApiRules does not make the ringtone a sound through AlarmRingtoneRules.fromApi(ringtone, Caller.Ask(access))"
         val askers = sources.mapValues { (_, text) -> count(text, "AlarmRingtoneRules.fromApi(") }.filterValues { it > 0 }
         if (askers != mapOf("clock/AlarmApiRules.kt" to 1, "clock/ClockIntents.kt" to 1)) problems += "a ringtone is weighed somewhere else: $askers"
-        // The editor's hand-off: exported, so the bundle's sound is weighed again — with no port, never with a yes.
-        if (count(clock, "API_SOUND_URI") != 2 || !clock.contains("AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, null).sound") || !clock.contains("val soundUri = api.string(API_SOUND_URI, MAX_URI)") ||
+        // The editor's hand-off: exported, so the bundle's sound is weighed again by the same rule — the caller's question
+        // answered by the handler, in ClockIntents.edit alone (reached only for the shell's own bundle, extrasProblems).
+        val handlerAsked = sources.filterKeys { it != "clock/AlarmRingtoneRules.kt" }.mapValues { (_, text) -> count(text, "AskedByHandler") }.filterValues { it > 0 }
+        if (handlerAsked != mapOf("clock/ClockIntents.kt" to 1)) problems += "the handler's answer stands in for the caller somewhere else: $handlerAsked"
+        if (count(clock, "API_SOUND_URI") != 2 || !clock.contains("AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, AlarmRingtoneRules.Caller.AskedByHandler).sound") || !clock.contains("val soundUri = api.string(API_SOUND_URI, MAX_URI)") ||
             count(clock, "AlarmSound(") != 1 || count(clockActivity, "AlarmSound(") != 0 || !clock.contains("AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)")
         ) problems += "the editor takes the hand-off bundle's sound without weighing it"
         // The sink: one function opens a stored URI, and it asks the rule first.
@@ -85,16 +90,20 @@ class AlarmSoundWiringScanTest {
         val sources = SourceScan.all()
         fun with(file: String, old: String, new: String) = problems(sources + (file to mutate(sources.getValue(file), old, new)))
         // The defect itself (H2): any string kept as a TONE — in the rule, or by the handler round the rule.
-        assertTrue(with("clock/AlarmApiRules.kt", "val tone = AlarmRingtoneRules.fromApi(ringtone, access)", "val tone = AlarmRingtoneRules.FromApi(if (ringtone == null) AlarmSound.DEFAULT else AlarmSound(AlarmSound.Kind.TONE, ringtone, null))").isNotEmpty())
+        assertTrue(with("clock/AlarmApiRules.kt", "val tone = AlarmRingtoneRules.fromApi(ringtone, AlarmRingtoneRules.Caller.Ask(access))", "val tone = AlarmRingtoneRules.FromApi(if (ringtone == null) AlarmSound.DEFAULT else AlarmSound(AlarmSound.Kind.TONE, ringtone, null))").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "f.days, f.sound, Alarm.DEFAULT_SNOOZE)", "f.days, AlarmSound(AlarmSound.Kind.TONE, intent.getStringExtra(AlarmClock.EXTRA_RINGTONE), null), Alarm.DEFAULT_SNOOZE)").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "f.sound.uri?.let { putString(ClockActivity.API_SOUND_URI, it) }", "putString(ClockActivity.API_SOUND_URI, intent.getStringExtra(AlarmClock.EXTRA_RINGTONE))").isNotEmpty())
         // The rule's answer ignored, or asked with no port / about nothing.
         assertTrue(with("clock/AlarmApiRules.kt", "AlarmFields(hour, minute, daySet, text, tone.sound, tone.refused)", "AlarmFields(hour, minute, daySet, text, ringtone?.let { AlarmSound(AlarmSound.Kind.TONE, it, null) } ?: tone.sound, tone.refused)").isNotEmpty())
-        assertTrue(with("clock/AlarmApiRules.kt", "AlarmRingtoneRules.fromApi(ringtone, access)", "AlarmRingtoneRules.fromApi(ringtone, null)").isNotEmpty())
+        assertTrue(with("clock/AlarmApiRules.kt", "AlarmRingtoneRules.Caller.Ask(access))", "AlarmRingtoneRules.Caller.Ask(null))").isNotEmpty())
+        // L18-3: the handler taking the editor's stand-in for the caller's answer — a yes nobody asked for.
+        assertTrue(with("clock/AlarmApiRules.kt", "AlarmRingtoneRules.Caller.Ask(access))", "AlarmRingtoneRules.Caller.AskedByHandler)").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "access = AndroidUriAccess(this),", "access = null,").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT),", "ringtone = extras.string(AlarmClock.EXTRA_RINGTONE, AlarmApiRules.MAX_EXTRA_TEXT) ?: intent.dataString,").isNotEmpty())
         // The editor trusting its bundle (the old line), or a second parser of the API.
-        assertTrue(with("clock/ClockIntents.kt", "AlarmRingtoneRules.fromApi(soundUri, null).sound", "AlarmSound(AlarmSound.Kind.TONE, soundUri, null)").isNotEmpty())
+        assertTrue(with("clock/ClockIntents.kt", "AlarmRingtoneRules.fromApi(soundUri, AlarmRingtoneRules.Caller.AskedByHandler).sound", "AlarmSound(AlarmSound.Kind.TONE, soundUri, null)").isNotEmpty())
+        // L18-3: the stand-in used where the bundle is not yet known to be the shell's (before the caller check).
+        assertTrue(with("clock/ClockIntents.kt", "val sent = try {", "AlarmRingtoneRules.fromApi(\"x\", AlarmRingtoneRules.Caller.AskedByHandler) val sent = try {").isNotEmpty())
         assertTrue(with("clock/ClockActivity.kt", "open.alarm?.let { nav.openAlarmEditor(it) }", "open.alarm?.let { nav.openAlarmEditor(it.copy(sound = AlarmSound(AlarmSound.Kind.TONE, intent?.dataString, null))) }").isNotEmpty())
         assertTrue(problems(sources + ("clock/ClockText.kt" to sources.getValue("clock/ClockText.kt") + " fun x(a: app.tileshell.media.UriAccessPort) = AlarmApiRules.parse(null, null, null, null, null, true, null, \"x\", null, a)")).isNotEmpty())
         // The sink: the check dropped, turned round, made after the open, or its answer ignored.

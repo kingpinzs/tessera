@@ -19,6 +19,11 @@ import app.tileshell.media.UriAccessRules
  *  - `content://media/<volume>/audio/media/<id>` on any other volume (a ringtone the user added): only when the
  *    platform says the app that started the handler could read that row itself — the same question, asked of the same
  *    port, as the exported viewer and player ask ([UriAccessRules.starterMayRead]).
+ * It is ONE rule for both of the API's paths (ledger L18-3): with `EXTRA_SKIP_UI` the handler stores its answer; without
+ * it the editor opens filled in from the handler's bundle, and weighs that bundle's sound by this same rule, the
+ * caller's question answered by the handler that asked it ([Caller.AskedByHandler]). So the alarm the editor opens has
+ * the sound the alarm made with SKIP_UI would have had (phase 15 T15-37: "without `EXTRA_SKIP_UI` it opens the editor
+ * filled in, with it the item is created").
  * Anything else — a `file:` URI, a bare path, `http(s):`, another scheme, another provider, any authority of the
  * shell's own, a user-id authority, an odd path — becomes the DEFAULT sound. The alarm is still made: an app that
  * passes an odd ringtone asked for an alarm, and gets one.
@@ -40,12 +45,27 @@ object AlarmRingtoneRules {
     /** [refused] is why the ringtone asked for was not kept (a diagnostics word, never the caller's text), else null. */
     data class FromApi(val sound: AlarmSound, val refused: String? = null)
 
+    /** Who answers [fromApi]'s one question that depends on where it is asked: could the app that named a row of the user's own volume read it? */
+    sealed interface Caller {
+        /**
+         * The API handler: asked of [access], the platform port of the activity the caller started; null when nobody can be
+         * asked about the caller — then only the sounds every app can read are kept.
+         */
+        data class Ask(val access: UriAccessPort?) : Caller
+
+        /**
+         * The editor, for the handler's hand-off bundle — honoured only when the shell itself sent it (`ClockIntents.open`):
+         * the handler asked the platform, and its bundle names a row only when the answer was yes. Every other check is
+         * made again.
+         */
+        data object AskedByHandler : Caller
+    }
+
     /**
      * @param ringtone `AlarmClock.EXTRA_RINGTONE` as it arrived: null, blank, "silent", or what should be a content URI
-     * @param access the platform port of the activity the caller started, or null when nobody can be asked about the
-     *   caller — then only the sounds every app can read are kept
+     * @param caller who answers whether the caller could read a row of the user's own volume ([Caller])
      */
-    fun fromApi(ringtone: String?, access: UriAccessPort?): FromApi {
+    fun fromApi(ringtone: String?, caller: Caller): FromApi {
         if (ringtone == null || ringtone.isBlank()) return FromApi(AlarmSound.DEFAULT)
         if (ringtone == AlarmApiRules.RINGTONE_SILENT) return FromApi(AlarmSound(AlarmSound.Kind.VIBRATE))
         val uri = ContentUriText.parse(ringtone)
@@ -57,11 +77,16 @@ object AlarmRingtoneRules {
             "media" -> when {
                 INTERNAL_SOUND.matches(rest) -> kept
                 !VOLUME_SOUND.matches(rest) -> FromApi(AlarmSound.DEFAULT, WHY_NOT_SOUND)
-                access != null && UriAccessRules.starterMayRead(access, uri).allowed -> kept
+                callerMayRead(caller, uri) -> kept
                 else -> FromApi(AlarmSound.DEFAULT, WHY_CALLER)
             }
             else -> FromApi(AlarmSound.DEFAULT, WHY_NOT_SOUND)
         }
+    }
+
+    private fun callerMayRead(caller: Caller, uri: ContentUriText): Boolean = when (caller) {
+        is Caller.Ask -> caller.access != null && UriAccessRules.starterMayRead(caller.access, uri).allowed
+        Caller.AskedByHandler -> true
     }
 
     /**
