@@ -1,6 +1,7 @@
 package app.tileshell.clock
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.AlarmClock
 import android.text.format.DateFormat
@@ -99,7 +100,9 @@ class AlarmApiActivity : ComponentActivity() {
             Intent(this, ClockActivity::class.java)
                 .putExtra(ClockActivity.EXTRA_PAGE, tab.id)
                 .apply { edit?.let { putExtra(ClockActivity.EXTRA_API_EDIT, it) } }
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // L18-6: on API 34 a running Clock cannot tell who sent a new intent; the editor goes as a fresh launch.
+                .apply { if (ClockIntents.handOffFresh(Build.VERSION.SDK_INT, edit != null)) addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) },
         )
     }
 }

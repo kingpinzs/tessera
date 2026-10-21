@@ -254,6 +254,50 @@ class AlarmSoundWiringScanTest {
         assertTrue(with("keepIf(route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER }), intent)", "route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })").isNotEmpty())
     }
 
+    /** The handler's one start of Clock: a new task, cleared when the rule says the hand-off must be a launch (L18-6). */
+    private val openClockForm = "{ startActivity( Intent(this, ClockActivity::class.java) .putExtra(ClockActivity.EXTRA_PAGE, tab.id) " +
+        ".apply { edit?.let { putExtra(ClockActivity.EXTRA_API_EDIT, it) } } .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK) " +
+        ".apply { if (ClockIntents.handOffFresh(Build.VERSION.SDK_INT, edit != null)) addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) }, ) }"
+
+    /**
+     * Ledger L18-6 (the third pass's P3-7): on API 34 the platform names no new intent's sender, so ClockActivity routes a
+     * new intent with nobody as its sender (held by extrasProblems) and the shell's own hand-off to a running Clock opened
+     * no editor. `ClockIntents.handOffFresh` is the rule (`ClockIntentsTest`); held here is that the handler starts Clock
+     * once, in that one form — the platform's API level and whether there is an editor to hand over, nothing else.
+     */
+    private fun handOffProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val api = sources["clock/AlarmApiActivity.kt"].orEmpty()
+        val open = body(api, "private fun openClock(tab: ClockTab, edit: Bundle?)")
+        if (open != openClockForm) problems += "AlarmApiActivity.openClock is not its one form:\n  is:      $open\n  must be: $openClockForm"
+        if (count(api, "startActivity(") != 1 || count(api, "ClockActivity::class.java") != 1 || count(api, "openClock(") != 5) problems += "the handler starts Clock outside openClock"
+        val clears = sources.mapValues { (_, text) -> count(text, "FLAG_ACTIVITY_CLEAR_TASK") }.filterValues { it > 0 }
+        val askers = sources.mapValues { (_, text) -> count(text, "handOffFresh(") }.filterValues { it > 0 }
+        if (askers != mapOf("clock/AlarmApiActivity.kt" to 1, "clock/ClockIntents.kt" to 1) || clears["clock/AlarmApiActivity.kt"] != 1) {
+            problems += "Clock's task is cleared other than by the handler's rule: $askers $clears"
+        }
+        return problems
+    }
+
+    @Test fun `L18-6 the handler hands the editor over as a fresh launch exactly where the rule says`() {
+        assertEquals(emptyList<String>(), handOffProblems(SourceScan.all()))
+    }
+
+    @Test fun `L18-6 a handler that never clears, always clears, asks about a fixed API or clears another way is caught`() {
+        val sources = SourceScan.all()
+        fun with(old: String, new: String) = handOffProblems(sources + ("clock/AlarmApiActivity.kt" to mutate(sources.getValue("clock/AlarmApiActivity.kt"), old, new)))
+        val rule = ".apply { if (ClockIntents.handOffFresh(Build.VERSION.SDK_INT, edit != null)) addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) }"
+        // The defect itself: the hand-off a new intent on every API.
+        assertTrue(with(rule, "").isNotEmpty())
+        // The rule asked about a fixed API, or for a request with no editor, or its answer ignored.
+        assertTrue(with("handOffFresh(Build.VERSION.SDK_INT, edit != null)", "handOffFresh(36, edit != null)").isNotEmpty())
+        assertTrue(with("handOffFresh(Build.VERSION.SDK_INT, edit != null)", "handOffFresh(Build.VERSION.SDK_INT, true)").isNotEmpty())
+        assertTrue(with(rule, ".addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK)").isNotEmpty())
+        // Another flag in its place, or a second start of Clock beside it.
+        assertTrue(with("addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) }", "addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP) }").isNotEmpty())
+        assertTrue(with("private fun notice(text: String) {", "private fun x() { startActivity(Intent(this, ClockActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) } private fun notice(text: String) {").isNotEmpty())
+    }
+
     @Test fun `L18-3 the exported clock activities read no extra themselves, and the edit bundle is weighed against that intent's caller`() {
         assertEquals(emptyList<String>(), extrasProblems(SourceScan.all()))
     }

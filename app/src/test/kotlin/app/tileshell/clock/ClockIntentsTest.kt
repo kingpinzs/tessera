@@ -206,6 +206,54 @@ class ClockIntentsTest {
         assertNull(Clock(launcher = stranger, held = port(ClockIntents.EXTRA_API_EDIT to alarmBundle())).relaunch().alarm)
     }
 
+    // ------------------------------------------------------------------------------------------------ API 34 (L18-6)
+
+    /**
+     * Where a start of ClockActivity lands, as the platform delivers it (AlarmSoundWiringScanTest holds the handler's and
+     * the activity's forms). ClockActivity is singleTask: with Clock's task alive, a start is a NEW intent, weighed against
+     * its sender — which the platform names only from API 35, else [ClockIntents.NO_CALLER] — unless it clears the task
+     * (FLAG_ACTIVITY_CLEAR_TASK: the handler's [ClockIntents.handOffFresh], or any app's own flags), when it is a LAUNCH
+     * whose launcher is the app that started it.
+     */
+    private fun delivered(api: Int, clockAlive: Boolean, sender: Int, clearTask: Boolean, extras: ExtrasPort): ClockOpen =
+        if (!clockAlive || clearTask) ClockIntents.open(extras, sender, shell)
+        else ClockIntents.open(extras, if (api >= ClockIntents.API_NAMES_NEW_INTENT_SENDER) sender else ClockIntents.NO_CALLER, shell)
+
+    /** The handler's hand-off, as AlarmApiActivity starts it: from the shell, the task cleared when the rule says so. */
+    private fun handedOff(api: Int, clockAlive: Boolean, edit: ExtrasPort?, page: String): ClockOpen {
+        val extras = if (edit == null) port(ClockIntents.EXTRA_PAGE to page) else port(ClockIntents.EXTRA_PAGE to page, ClockIntents.EXTRA_API_EDIT to edit)
+        return delivered(api, clockAlive, shell, ClockIntents.handOffFresh(api, edit != null), extras)
+    }
+
+    @Test fun `L18-6 the shell's own hand-off opens the editor on API 34 too, whether or not Clock is running`() {
+        val timerEdit = port(ClockIntents.API_KIND to "timer", ClockIntents.API_TIMER_LENGTH_MS to 125_000L, ClockIntents.API_MESSAGE to "Tea")
+        for (api in listOf(34, 35, 36)) for (alive in listOf(false, true)) {
+            val alarm = handedOff(api, alive, alarmBundle(), "alarm")
+            assertEquals("API $api, Clock running: $alive — ${alarm.lines}", 6, alarm.alarm?.hour)
+            assertEquals(ClockTab.ALARM, alarm.tab)
+            val timer = handedOff(api, alive, timerEdit, "timer")
+            assertEquals("API $api, Clock running: $alive — ${timer.lines}", TimerDraft(null, 0, 2, 5, "Tea"), timer.timer)
+            // SHOW_ALARMS / SHOW_TIMERS carry no bundle: a new intent choosing the tab, as before.
+            assertEquals(ClockTab.TIMER, handedOff(api, alive, null, "timer").tab)
+        }
+    }
+
+    @Test fun `L18-6 only the shell's edit hand-off on API 34 clears Clock's task - API 35 and later and a request with no editor are unchanged`() {
+        assertTrue(ClockIntents.handOffFresh(34, edit = true))
+        assertFalse(ClockIntents.handOffFresh(34, edit = false))
+        for (api in listOf(35, 36, 37)) for (edit in listOf(true, false)) assertFalse("$api $edit", ClockIntents.handOffFresh(api, edit))
+        assertEquals(android.os.Build.VERSION_CODES.VANILLA_ICE_CREAM, ClockIntents.API_NAMES_NEW_INTENT_SENDER)
+    }
+
+    @Test fun `L18-6 a stranger's bundle is never honoured on API 34 either, whatever flags it starts Clock with, and no relaunch routes it`() {
+        for (api in listOf(34, 35, 36)) for (alive in listOf(false, true)) for (clearTask in listOf(false, true)) for (sender in listOf(stranger, ClockIntents.NO_CALLER)) {
+            val o = delivered(api, alive, sender, clearTask, port(ClockIntents.EXTRA_PAGE to "alarm", ClockIntents.EXTRA_API_EDIT to alarmBundle()))
+            assertNull("API $api alive $alive clear $clearTask", o.alarm)
+            // A launch is weighed against its launcher on every relaunch; a new intent is not kept (P3-4).
+            if (alive && !clearTask) assertFalse(o.keep) else assertNull(Clock(launcher = sender, held = port(ClockIntents.EXTRA_API_EDIT to alarmBundle())).relaunch().alarm)
+        }
+    }
+
     // ------------------------------------------------------------------------------------------------ AlarmApiActivity
 
     @Test fun `N4 a request with an extra that could not be read is refused whole, and its line carries no caller text`() {
