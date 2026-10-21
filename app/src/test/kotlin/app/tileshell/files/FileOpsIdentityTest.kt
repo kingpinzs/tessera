@@ -129,6 +129,39 @@ class FileOpsIdentityTest {
         assertEquals(OpResult.Done(listOf(File(bed.root, "Trip").path)), ops.newFolder(bed.root, "Trip"))
     }
 
+    // ---- P3-6 (pass 3): "the shell's own folder cannot be made" only where that IS what stops the write
+
+    /** A volume on which the shell's folder cannot be made: whatever is asked, `.Tessera` is not there. */
+    private class Unmakeable : FolderNames by FolderNames.Real {
+        override fun exists(file: File): Boolean = file.name != FilePaths.SHELL_DIR && FolderNames.Real.exists(file)
+    }
+
+    @Test
+    fun `a root that takes no new entry - a new folder and a rename of a gone file fail as they did before the anchor`() {
+        val root = bed.cardRoot
+        root.setWritable(false)
+        try {
+            assertEquals(OpResult.Failed("IOException"), bed.ops.newFolder(root, "Trip"))
+            assertEquals(OpResult.Failed("zz-missing is gone"), bed.ops.rename(File(root, "zz-missing"), "y"))
+            assertEquals(emptyList<String>(), bed.names(root))
+        } finally {
+            root.setWritable(true)
+        }
+    }
+
+    @Test
+    fun `a root that takes new entries but not the shell's folder - a new name there is refused, unproven, and nothing is made`() {
+        val ops = bed.opsOn(Unmakeable())
+        val docs = bed.dir("Docs", bed.card)
+        assertEquals(OpResult.Failed(FileOps.SHELL_UNPROVEN), ops.newFolder(bed.cardRoot, "Trip"))
+        assertEquals(OpResult.Failed(FileOps.SHELL_UNPROVEN), ops.rename(docs, "Trip"))
+        assertEquals("new folder ${File(bed.cardRoot, "Trip").path}: failed the shell's own folder cannot be made on this storage", bed.lines[bed.lines.size - 2])
+        assertFalse(File(bed.cardRoot, "Trip").exists())
+        assertTrue(docs.isDirectory)
+        // A name that is not directly under a volume's root needs no anchor.
+        assertEquals(OpResult.Done(listOf(File(docs, "Trip").path)), ops.newFolder(docs, "Trip"))
+    }
+
     @Test
     fun `a folder the volume folds onto the bin's name is never adopted as the bin - the delete names it`() {
         // Another app made `.Teßera` (with a forged bin in it) before any bin existed.
