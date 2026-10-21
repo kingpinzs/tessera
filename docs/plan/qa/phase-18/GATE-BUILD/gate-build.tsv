@@ -1,0 +1,10 @@
+# Phase 18's gate build pointer, read by scripts/rowsb.sh (2026-10-20, the resume session). It replaces the files
+# gate-build-2 / gate-build-3 that rowsb.sh read from a finished session's scratchpad. One `current` row: the APK every
+# device row installs and asserts, and the commit its source is (the JVM frame compiles that commit, in a worktree made
+# by scripts/src_worktree.sh). `prior` rows: earlier gate builds whose rows still stand (E12 and E20 accept a row's
+# latest run when it is stamped with the current build or one of these). The APK file itself is git-ignored and kept
+# beside this file: GATE-BUILD/app-debug-b1a22a1d.apk (read-only).
+role	apk_md5	commit	what
+current	b1a22a1dfbd2ec5268efb2f855460bd3	5ba4238c6	round 2's merge (fixes only); built 2026-10-07 06:15
+prior	563afe82e1d2799abf86cd54513ef7aa	-	gate candidate 3 (the FAT rename fix)
+prior	ad587e3e86a41afbc8b0311fe0bb86dd	-	gate candidate 2 (the first review's fixes)

@@ -25,7 +25,20 @@
 #   q, top_activity, gdump, absent_in, rings_save, c6          qa/phase-17/scripts/p17.sh (gdump's scratch name is p18_)
 #   media_scan, media_ids, _media_dest, media_up, media_down   qa/phase-17/scripts/p17.sh:150-213, VERBATIM — the only
 #                                                              change is GEN, which is this phase's gen/media
-export ANDROID_SERIAL=emulator-5554
+# The device is the AVD tileshell_fhd, found by its NAME (2026-10-20, Q-18-11 (a)): another session's emulator may hold
+# emulator-5554, so the serial is whichever running emulator's console reads `tileshell_fhd`. With none, ANDROID_SERIAL
+# names no device at all, so every adb step fails loudly instead of reaching another emulator; a JVM-only row, which
+# runs no adb command, still runs.
+P18_AVD=tileshell_fhd
+p18_serial() {
+  local s
+  for s in $(adb devices 2>/dev/null | awk 'NR>1 && $1 ~ /^emulator-/ && $2 == "device" {print $1}'); do
+    [ "$(adb -s "$s" emu avd name 2>/dev/null | head -1 | tr -d '\r')" = "$P18_AVD" ] && { echo "$s"; return 0; }
+  done
+  return 1
+}
+ANDROID_SERIAL="$(p18_serial)" || { ANDROID_SERIAL="no-$P18_AVD-running"; echo "p18.sh: no running emulator reads $P18_AVD; adb steps will fail" >&2; }
+export ANDROID_SERIAL
 
 P18="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 P01S="$(cd "$P18/../phase-01/scripts" && pwd)"
@@ -39,6 +52,14 @@ PREFS_EDIT="$P01S/prefs_edit.py"
 MAKE_ZIPS="$P18/scripts/make_zips.py"
 STAMP_FILES="$P18/scripts/p18.sh"
 DRV_RUNNER="app.tileshell.qa.imefixture.test/androidx.test.runner.AndroidJUnitRunner"
+# The APK every row installs, provisions and stamps (2026-10-20): the kept gate build that GATE-BUILD/gate-build.tsv's
+# `current` row names, GATE-BUILD/app-debug-<md5's first 8>.apk — never app/build's, which any gradle run overwrites.
+# Exported, so provision.sh (a child bash with its own lib.sh) installs the same file. TILESHELL_APK still overrides.
+if [ -z "${TILESHELL_APK:-}" ]; then
+  _gate_md5="$(awk -F'\t' '$1 == "current" {print $2; exit}' "$P18/GATE-BUILD/gate-build.tsv" 2>/dev/null)"
+  [ -n "$_gate_md5" ] && APK="$P18/GATE-BUILD/app-debug-${_gate_md5:0:8}.apk"
+fi
+export TILESHELL_APK="$APK"
 
 FILES_ACTIVITY="app.tileshell/.files.FilesActivity"
 FILES_TILE="tile:app:app.tileshell/app.tileshell.files.FilesActivity:0"
@@ -747,9 +768,12 @@ for raw in sys.stdin:
 # 0 failures / errors / skipped over at least one test, and hold every named case passed (precedent
 # qa/phase-11/scripts/e14.sh:40-42). Example: jvm_gate '*FileShareGuard*' '*FileShareGuard*' refusesTheAppsOwnFile …
 jvm_gate() { # tests-pattern report-glob case…
-  local pattern="$1" glob="$2" dir="$REPO/app/build/test-results/testDebugUnitTest" out f
+  # JVM_REPO: the worktree gradle runs in — rowsb.sh's gate-commit checkout when it is sourced, else this worktree.
+  local pattern="$1" glob="$2" jr="${JVM_REPO:-$REPO}" dir out f
+  dir="$jr/app/build/test-results/testDebugUnitTest"
   shift 2
-  ( cd "$REPO" && ./gradlew :app:cleanTestDebugUnitTest :app:testDebugUnitTest --offline --tests "$pattern" ) > "$ROW_DIR/gradle.out" 2>&1
+  if declare -F gate_src_ready >/dev/null; then gate_src_ready; fi
+  ( cd "$jr" && ./gradlew :app:cleanTestDebugUnitTest :app:testDebugUnitTest --offline --tests "$pattern" ) > "$ROW_DIR/gradle.out" 2>&1
   echo $? > "$ROW_DIR/gradle.rc"
   assert_eq "JVM gate $pattern: gradle's exit code (gradle.rc)" "0" "$(cat "$ROW_DIR/gradle.rc")"
   mkdir -p "$ROW_DIR/test-reports"

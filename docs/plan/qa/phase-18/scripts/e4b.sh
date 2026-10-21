@@ -30,7 +30,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p18.sh"
 . "$HERE/rowsb.sh"
-SCRATCH=/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/rows-b
+SCRATCH="$FXGEN/rows-b"        # provision.sh's TMPDIR (git-ignored; until 2026-10-20 a finished session's scratchpad)
 mkdir -p "$SCRATCH"
 PRIMARY=/storage/emulated/0
 CAM=$PRIMARY/DCIM/Camera
