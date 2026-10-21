@@ -293,9 +293,10 @@ class FileOps(
             val before = if (FilePaths.isRealDirectory(file)) filesUnder(file) else listOf(file.path)
             if (newName != file.name) {
                 if (names.exists(target)) {
-                    // Taken — unless it is this very file answering to its own name in another case. Another file that
-                    // differs only by case (a case-sensitive volume), or another name of this one, is the ordinary clash.
-                    if (!newName.equals(file.name, ignoreCase = true) || !names.same(file, target)) throw Refused("the name is taken")
+                    // Taken — unless it is this very ENTRY answering to its own name in another case. Another file that
+                    // differs only by case (a case-sensitive volume), another name of this one, or a link to it or from it
+                    // (N7: a link is its own entry) is the ordinary clash.
+                    if (!newName.equals(file.name, ignoreCase = true) || !names.sameEntry(file, target)) throw Refused("the name is taken")
                     renameCase(file, target, volume)
                 } else {
                     names.rename(file, target)

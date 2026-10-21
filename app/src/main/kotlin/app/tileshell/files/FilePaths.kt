@@ -6,6 +6,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * One mounted storage volume as Files sees it: [uuid] is `StorageVolume.getUuid()` ([FilePaths.PRIMARY] for the primary
@@ -96,6 +97,12 @@ interface FileIdentity {
 
     /** The names in [dir] exactly as the volume holds them; null when it cannot be listed. */
     fun names(dir: File): List<String>?
+
+    /**
+     * [a] and [b] are one and the same ENTRY: as [same], except that a link is itself and never the file it leads to
+     * (the GATE review's N7: a link and its target are two entries, and a rename of one onto the other replaces).
+     */
+    fun sameEntry(a: File, b: File): Boolean = if (FilePaths.isSymlink(a) || FilePaths.isSymlink(b)) FilePaths.sameEntry(a, b) else same(a, b)
 
     object Real : FileIdentity {
         override fun exists(file: File): Boolean = FilePaths.existsNoFollow(file)
@@ -296,6 +303,12 @@ object FilePaths {
     fun existsNoFollow(f: File): Boolean = Files.exists(f.toPath(), LinkOption.NOFOLLOW_LINKS)
 
     fun isSymlink(f: File): Boolean = Files.isSymbolicLink(f.toPath())
+
+    /** [a] and [b] are one directory entry, links NOT followed (`lstat`'s device and inode); the same path always is. */
+    fun sameEntry(a: File, b: File): Boolean = a == b || runCatching {
+        val key = Files.readAttributes(a.toPath(), BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS).fileKey()
+        key != null && key == Files.readAttributes(b.toPath(), BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS).fileKey()
+    }.getOrDefault(false)
 
     /** A real directory, not a link to one: the only kind a walk descends into. */
     fun isRealDirectory(f: File): Boolean = Files.isDirectory(f.toPath(), LinkOption.NOFOLLOW_LINKS)

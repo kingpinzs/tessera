@@ -8,6 +8,7 @@ import java.nio.file.NoSuchFileException
 import org.junit.After
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -228,5 +229,59 @@ class FileOpsCaseRenameTest {
         Files.createLink(File(src.folder, "twin.txt").toPath(), src.toPath())
         assertEquals(OpResult.Failed("the name is taken"), bed.ops.rename(src, "twin.txt"))
         assertEquals(listOf("a.txt", "twin.txt"), bed.names(src.folder))
+    }
+
+    // ---- N7 (the GATE review's pass 2): a link is its own entry, never the file it leads to
+
+    /** The pass-2 shape of the volume: its rename is plain `rename(2)`, which replaces what holds the name. */
+    private class Rename2 : FolderNames, FileIdentity by FileIdentity.Real {
+        override fun rename(from: File, to: File) {
+            Files.move(from.toPath(), to.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+        }
+    }
+
+    @Test
+    fun `a link renamed to the name of the file it leads to, in another case, is the ordinary clash - the file is never replaced`() {
+        val real = bed.file("QA-Files/A.TXT", body)
+        val link = File(real.folder, "a.txt")
+        Files.createSymbolicLink(link.toPath(), real.toPath())
+        for (names in listOf(Rename2(), FolderNames.Real)) {
+            bed.lines.clear()
+            assertEquals(OpResult.Failed("the name is taken"), bed.opsOn(names).rename(link, "A.TXT"))
+            // The real file is the same file, with its bytes; the link is still a link, under its own name, to it.
+            assertTrue(Files.isRegularFile(real.toPath(), java.nio.file.LinkOption.NOFOLLOW_LINKS))
+            assertArrayEquals(body, real.readBytes())
+            assertTrue(Files.isSymbolicLink(link.toPath()))
+            assertEquals(real.toPath(), Files.readSymbolicLink(link.toPath()))
+            assertEquals(listOf("A.TXT", "a.txt"), bed.names(real.folder))
+            assertTrue(journalled().isEmpty())
+            assertEquals(listOf("rename ${link.path} -> A.TXT: failed the name is taken"), bed.lines)
+        }
+    }
+
+    @Test
+    fun `a file renamed to the name of a link that leads to it, in another case, is the ordinary clash too`() {
+        val real = bed.file("QA-Files/a.txt", body)
+        val link = File(real.folder, "A.TXT")
+        Files.createSymbolicLink(link.toPath(), real.toPath())
+        for (names in listOf(Rename2(), FolderNames.Real)) {
+            assertEquals(OpResult.Failed("the name is taken"), bed.opsOn(names).rename(real, "A.TXT"))
+            assertArrayEquals(body, real.readBytes())
+            assertTrue(Files.isSymbolicLink(link.toPath()))
+            assertEquals(listOf("A.TXT", "a.txt"), bed.names(real.folder))
+        }
+    }
+
+    @Test
+    fun `one entry is the same entry - a link is itself, and a file's case twin on a folding volume is still its own name`() {
+        val real = bed.file("QA-Files/A.TXT", body)
+        val link = File(real.folder, "a.txt")
+        Files.createSymbolicLink(link.toPath(), real.toPath())
+        assertTrue(FileIdentity.Real.same(link, real))
+        assertFalse(FileIdentity.Real.sameEntry(link, real))
+        assertFalse(FileIdentity.Real.sameEntry(real, link))
+        assertTrue(FileIdentity.Real.sameEntry(link, File(real.folder, "a.txt")))
+        assertTrue(FileIdentity.Real.sameEntry(real, real))
+        assertTrue(Fat().sameEntry(real, File(real.folder, "a.TxT")))
     }
 }
