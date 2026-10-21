@@ -555,11 +555,17 @@ class FileOps(
 
     private fun sameFile(a: File, b: File): Boolean = runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
 
-    /** [item] lies inside the folder [holder] (or is it), as both resolve. */
+    /**
+     * [item] lies inside the folder [holder] (or is it) — by FILE IDENTITY (P3-3, N2's rule): [item] as written and as it
+     * resolves, and every folder above each, is asked whether it is the same file as [holder] ([FilePaths.within]), so
+     * an alias of the holder (a name the volume folds onto it, a link to it) holds what the holder holds. The resolved
+     * text is asked too, and can only say "inside" more often. A path that cannot be resolved is inside: it cannot be
+     * proven not to be.
+     */
     internal fun inside(item: File, holder: File): Boolean {
         val i = canonicalOf(item) ?: return true
         val h = canonicalOf(holder) ?: return true
-        return i == h || FilePaths.under(i, h)
+        return i == h || FilePaths.under(i, h) || FilePaths.within(item.path, holder, canonical, names)
     }
 
     companion object {

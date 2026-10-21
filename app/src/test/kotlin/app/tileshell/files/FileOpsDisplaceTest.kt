@@ -142,6 +142,49 @@ class FileOpsDisplaceTest {
     }
 
     @Test
+    fun `a move with Replace from inside the folder being replaced, named through an alias of it, is refused by identity`() {
+        // P3-3 (pass 3): the probe's shape. `DOCS` leads to `Docs` (on the device: a case variant), and resolving a path
+        // keeps the name as written — so the text of the two paths says "not inside"; the files say otherwise.
+        val src = bed.file("Docs/notes/notes", "inner".toByteArray())
+        bed.file("Docs/notes/other.txt")
+        Files.createSymbolicLink(File(bed.root, "DOCS").toPath(), File(bed.root, "Docs").toPath())
+        val asWritten: (String) -> String? = { java.nio.file.Paths.get(it).toAbsolutePath().normalize().toString() }
+        val ops = FileOps({ bed.mounted.toList() }, asWritten, { bed.now }, { bed.scanned += it }, { bed.lines += it }, OpsJournal(bed.privateDir, { bed.now }, asWritten, { bed.lines += it }))
+
+        assertEquals(OpResult.Failed(FileOps.INSIDE_REPLACED), ops.move(listOf(src), File(bed.root, "DOCS"), conflict = replace))
+        assertEquals("inner", src.readText())
+        assertEquals(listOf("notes", "other.txt"), bed.names(File(bed.root, "Docs/notes")))
+        assertTrue(ops.bin.list(bed.primary).isEmpty())
+    }
+
+    @Test
+    fun `inside is a question of identity - a name the volume folds onto the holder holds what the holder holds`() {
+        val ops = bed.opsOn(FoldingVolume())
+        val src = bed.file("Docs/notes/notes")
+        bed.file("Docs/other/x")
+        assertTrue(ops.inside(src, File(bed.root, "DOCS/notes")))
+        assertTrue(ops.inside(src, File(bed.root, "Do\u200Bcs")))
+        assertTrue(ops.inside(src, File(bed.root, "Docs")))
+        assertFalse(ops.inside(src, File(bed.root, "Docs/other")))
+        assertFalse(ops.inside(File(bed.root, "Docs/other/x"), File(bed.root, "DOCS/notes")))
+    }
+
+    @Test
+    fun `inside fails closed - a source that cannot be resolved is taken as inside, and the Replace is refused`() {
+        // P3M20 (pass 3): the source resolves for every check before the conflict, and not after it.
+        val src = bed.file("A/a.txt", "new".toByteArray())
+        val old = bed.file("B/a.txt", "old".toByteArray())
+        var asked = false
+        val canonical: (String) -> String? = { if (asked && it == src.path) null else File(it).canonicalPath }
+        val ops = FileOps({ bed.mounted.toList() }, canonical, { bed.now }, { bed.scanned += it }, { bed.lines += it }, bed.journal)
+
+        assertEquals(OpResult.Failed(FileOps.INSIDE_REPLACED), ops.copy(listOf(src), old.parentFile!!) { asked = true; Conflict.REPLACE })
+        assertTrue(asked)
+        assertEquals("old", old.readText())
+        assertTrue(ops.bin.list(bed.primary).isEmpty())
+    }
+
+    @Test
     fun `a same-volume move of a file over a file with Replace bins the old file`() {
         val src = bed.file("A/a.txt", "new".toByteArray())
         val old = bed.file("B/a.txt", "old".toByteArray())
