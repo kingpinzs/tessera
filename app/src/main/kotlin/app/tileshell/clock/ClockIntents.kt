@@ -76,6 +76,11 @@ data class ClockOpen(
     val alarm: AlarmDraft? = null,
     val timer: TimerDraft? = null,
     val lines: List<String> = emptyList(),
+    /**
+     * For a NEW intent: whether it may become the activity's own intent — the one a relaunch routes again, against the
+     * app that FIRST launched the activity (ledger L18-3, the third pass's P3-4). See [ClockIntents.open].
+     */
+    val keep: Boolean = true,
 )
 
 /**
@@ -91,6 +96,15 @@ data class ClockOpen(
  *    and its sound is weighed by the API's own ringtone rule (`AlarmRingtoneRules.fromApi`, the caller's question
  *    answered by the handler that asked it). A bundle with one bad field is ignored whole. Nothing is stored until the
  *    user saves.
+ *
+ * A NEW intent (the activity is singleTask) is weighed against its own sender, and becomes the activity's own intent
+ * only when [ClockOpen.keep] says so (ledger L18-3, the third pass's P3-4): a relaunch — a configuration change the
+ * manifest does not handle, such as the language or bold text — routes the activity's intent again, and the platform
+ * then names only the app that FIRST launched the activity. So a new intent is kept only when that cannot honour a bundle
+ * its own sender could not give: it carries no edit bundle, or the shell itself sent it. Any other is not kept, and the
+ * activity keeps the intent it had — its first launcher's, or a later one this rule kept — which a relaunch weighs
+ * against that first launcher as before (a bundle the shell handed over is honoured again only when the shell also
+ * launched Clock; never a stranger's).
  *
  * Every extra is read through [SafeExtras], so no intent can throw here. Pure: `ClockIntentsTest`.
  */
@@ -110,6 +124,9 @@ object ClockIntents {
     const val NO_CALLER = -1
 
     const val WHY_NOT_SHELL = "not the shell"
+
+    /** The line a new intent that is not kept writes (P3-4): a relaunch will not route it. */
+    const val NOT_KEPT = "new intent not kept for a relaunch: its edit bundle is not the shell's"
 
     private const val MAX_ID = 128
     private const val MAX_URI = 2048
@@ -146,8 +163,9 @@ object ClockIntents {
         var api = "none"
         // The caller first: for anyone but the shell the bundle is not even unpacked.
         val sent = try { extras.value(EXTRA_API_EDIT) != null } catch (e: Throwable) { true }
+        val fromShell = myUid >= 0 && callerUid == myUid
         if (sent) {
-            if (myUid < 0 || callerUid != myUid) {
+            if (!fromShell) {
                 api = "ignored: $WHY_NOT_SHELL"
             } else {
                 when (val edit = edit(safe.nested(EXTRA_API_EDIT))) {
@@ -160,7 +178,7 @@ object ClockIntents {
         safe.refused.forEach { lines += it }
         if (api.startsWith("ignored")) lines += "api edit $api"
         lines += "open page=${page?.let { token(it) } ?: "none"} tile=${tile?.let { token(it) } ?: "none"} api=$api -> tab ${tab?.id ?: "unchanged"}"
-        return ClockOpen(tab, focused, alarm, timer, lines)
+        return ClockOpen(tab, focused, alarm, timer, lines, keep = !sent || fromShell)
     }
 
     sealed interface Edit {

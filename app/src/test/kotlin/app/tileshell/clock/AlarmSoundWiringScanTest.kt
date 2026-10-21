@@ -200,14 +200,14 @@ class AlarmSoundWiringScanTest {
             rawRead.findAll(text).forEach { problems += "$name reads an extra itself (${it.value}): only SafeExtras reads another app's extras" }
         }
         if (count(clock, "route(") != 4 || !clock.contains("route(intent, ClockIntents.launchCaller(AndroidUriAccess(this)))") ||
-            !clock.contains("if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) route(intent, ClockIntents.NO_CALLER)") ||
-            !clock.contains("super.onNewIntent(intent, caller) route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })") ||
-            !clock.contains("private fun route(intent: Intent?, callerUid: Int) { val open = ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid()) ") ||
+            !clock.contains("if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) keepIf(route(intent, ClockIntents.NO_CALLER), intent)") ||
+            !clock.contains("super.onNewIntent(intent, caller) keepIf(route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER }), intent)") ||
+            !clock.contains("private fun route(intent: Intent?, callerUid: Int): ClockOpen { val open = ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid()) ") ||
             count(clock, "Process.myUid()") != 1 || count(clock, "openAlarmEditor(") != 2 || count(clock, "openTimerEditor(") != 2
         ) problems += "ClockActivity does not route every intent through ClockIntents.open with that intent's own caller"
         val openers = sources.mapValues { (_, text) -> count(text, "ClockIntents.open(") }.filterValues { it > 0 }
         if (openers != mapOf("clock/ClockActivity.kt" to 1)) problems += "an intent is weighed for Clock somewhere else: $openers"
-        if (!sources["clock/ClockIntents.kt"].orEmpty().contains("if (myUid < 0 || callerUid != myUid) { api = \"ignored: \$WHY_NOT_SHELL\" } else { when (val edit = edit(safe.nested(EXTRA_API_EDIT))) {")) {
+        if (!sources["clock/ClockIntents.kt"].orEmpty().contains("val fromShell = myUid >= 0 && callerUid == myUid if (sent) { if (!fromShell) { api = \"ignored: \$WHY_NOT_SHELL\" } else { when (val edit = edit(safe.nested(EXTRA_API_EDIT))) {")) {
             problems += "the edit bundle is read before, or without, the caller check"
         }
         if (!api.contains("val extras = SafeExtras(AndroidExtras(intent)) val parsed = AlarmApiRules.parse(") || count(api, "SafeExtras(") != 1 ||
@@ -215,6 +215,43 @@ class AlarmSoundWiringScanTest {
             !api.contains("Diagnostics.add(\"alarms\", AlarmApiRules.line(intent.action, caller, result))")
         ) problems += "the handler acts on a request whose extras it could not all read, or reads them outside SafeExtras"
         return problems
+    }
+
+    /**
+     * Ledger L18-3, the third pass's P3-4: a relaunch routes the activity's intent again against the app that FIRST
+     * launched it. `ClockIntents.open`'s [ClockOpen.keep] is the rule (`ClockIntentsTest`); held here is that a new
+     * intent becomes the activity's own only through it — at the one `setIntent`, from both onNewIntent paths — and that
+     * the launch path never consults it.
+     */
+    private fun relaunchProblems(sources: Map<String, String>): List<String> {
+        val problems = mutableListOf<String>()
+        val clock = sources["clock/ClockActivity.kt"].orEmpty()
+        if (!clock.contains("private fun keepIf(open: ClockOpen, intent: Intent) { if (open.keep) setIntent(intent) else Diagnostics.add(\"clock\", ClockIntents.NOT_KEPT) }") ||
+            count(clock, "setIntent(") != 1 || Regex("(?<![\\w.])intent\\s*=(?!=)|\\.intent\\s*=(?!=)").containsMatchIn(clock)
+        ) problems += "a new intent becomes the activity's own other than through ClockOpen.keep"
+        if (count(clock, "keepIf(") != 3 ||
+            !clock.contains("if (Build.VERSION.SDK_INT < Build.VERSION_CODES.VANILLA_ICE_CREAM) keepIf(route(intent, ClockIntents.NO_CALLER), intent)") ||
+            !clock.contains("super.onNewIntent(intent, caller) keepIf(route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER }), intent)") ||
+            !clock.contains("private fun route(intent: Intent?, callerUid: Int): ClockOpen { val open = ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid()) ") ||
+            !body(clock, "private fun route(intent: Intent?, callerUid: Int): ClockOpen").endsWith(" return open }")
+        ) problems += "a new intent is kept other than by its own answer, or the launch path consults it"
+        return problems
+    }
+
+    @Test fun `L18-3 P3-4 a new intent becomes the activity's own only when its own answer keeps it`() {
+        assertEquals(emptyList<String>(), relaunchProblems(SourceScan.all()))
+    }
+
+    @Test fun `L18-3 P3-4 an activity that keeps every new intent, or sets its intent another way, is caught`() {
+        val sources = SourceScan.all()
+        fun with(old: String, new: String) = relaunchProblems(sources + ("clock/ClockActivity.kt" to mutate(sources.getValue("clock/ClockActivity.kt"), old, new)))
+        // The defect itself: every new intent kept, whoever sent its bundle.
+        assertTrue(with("if (open.keep) setIntent(intent) else Diagnostics.add(\"clock\", ClockIntents.NOT_KEPT)", "setIntent(intent)").isNotEmpty())
+        assertTrue(with("override fun onNewIntent(intent: Intent) { super.onNewIntent(intent)", "override fun onNewIntent(intent: Intent) { super.onNewIntent(intent) setIntent(intent)").isNotEmpty())
+        assertTrue(with("super.onNewIntent(intent, caller) keepIf(", "super.onNewIntent(intent, caller) this.intent = intent keepIf(").isNotEmpty())
+        // The answer of another intent, or the new intent's answer dropped on one path.
+        assertTrue(with("keepIf(route(intent, ClockIntents.NO_CALLER), intent)", "keepIf(ClockOpen(), intent)").isNotEmpty())
+        assertTrue(with("keepIf(route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER }), intent)", "route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })").isNotEmpty())
     }
 
     @Test fun `L18-3 the exported clock activities read no extra themselves, and the edit bundle is weighed against that intent's caller`() {
@@ -230,9 +267,9 @@ class AlarmSoundWiringScanTest {
         // The caller dropped, made the shell's own, or the launch's caller used for a new intent.
         assertTrue(with("clock/ClockActivity.kt", "ClockIntents.open(intent?.let { AndroidExtras(it) }, callerUid, Process.myUid())", "ClockIntents.open(intent?.let { AndroidExtras(it) }, Process.myUid(), Process.myUid())").isNotEmpty())
         assertTrue(with("clock/ClockActivity.kt", "route(intent, ClockIntents.launchCaller(AndroidUriAccess(this)))", "route(intent, Process.myUid())").isNotEmpty())
-        assertTrue(with("clock/ClockActivity.kt", "VANILLA_ICE_CREAM) route(intent, ClockIntents.NO_CALLER)", "VANILLA_ICE_CREAM) route(intent, Process.myUid())").isNotEmpty())
+        assertTrue(with("clock/ClockActivity.kt", "VANILLA_ICE_CREAM) keepIf(route(intent, ClockIntents.NO_CALLER)", "VANILLA_ICE_CREAM) keepIf(route(intent, Process.myUid())").isNotEmpty())
         assertTrue(with("clock/ClockActivity.kt", "route(intent, try { caller.uid } catch (e: Throwable) { ClockIntents.NO_CALLER })", "route(intent, try { caller.uid } catch (e: Throwable) { Process.myUid() })").isNotEmpty())
-        assertTrue(with("clock/ClockIntents.kt", "if (myUid < 0 || callerUid != myUid) {", "if (myUid < 0 && callerUid != myUid) {").isNotEmpty())
+        assertTrue(with("clock/ClockIntents.kt", "val fromShell = myUid >= 0 && callerUid == myUid", "val fromShell = myUid >= 0 || callerUid == myUid").isNotEmpty())
         // The handler acting on what it parsed although an extra was unreadable.
         assertTrue(with("clock/AlarmApiActivity.kt", "val request = AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)", "val request = parsed").isNotEmpty())
         assertTrue(with("clock/AlarmApiActivity.kt", "AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)", "AlarmApiRules.unlessUnreadable(parsed, 0)").isNotEmpty())
