@@ -293,9 +293,10 @@ class FileOps(
             val before = if (FilePaths.isRealDirectory(file)) filesUnder(file) else listOf(file.path)
             if (newName != file.name) {
                 if (names.exists(target)) {
-                    // Taken — unless it is this very file answering to its own name in another case. Another file that
-                    // differs only by case (a case-sensitive volume), or another name of this one, is the ordinary clash.
-                    if (!newName.equals(file.name, ignoreCase = true) || !names.same(file, target)) throw Refused("the name is taken")
+                    // Taken — unless it is this very ENTRY answering to its own name in another case. Another file that
+                    // differs only by case (a case-sensitive volume), another name of this one, or a link to it or from it
+                    // (N7: a link is its own entry) is the ordinary clash.
+                    if (!newName.equals(file.name, ignoreCase = true) || !names.sameEntry(file, target)) throw Refused("the name is taken")
                     renameCase(file, target, volume)
                 } else {
                     names.rename(file, target)
@@ -483,7 +484,10 @@ class FileOps(
      * A path that is NOT THERE yet and would be made directly under a volume's root is the one case identity cannot
      * answer by itself: on a volume that folds names it could become the shell's folder when that is made later. So the
      * shell's folder is made FIRST ([RecycleBin.anchor]) — from then on a name the volume folds onto it exists, and the
-     * identity rule refuses it. When nothing can be made there the path is refused: it cannot be proven.
+     * identity rule refuses it. When the shell's folder cannot be made there although the root takes new entries, the
+     * path is refused ([SHELL_UNPROVEN]): it cannot be proven. A root that takes NO new entry — gone, read-only, not
+     * writable — is not refused here (pass 3, P3-6): nothing can be made there, the path's twin included, so the
+     * operation's own write fails and says why, as it did before the anchor.
      */
     internal fun notShell(vararg files: File) {
         if (files.any(::inShell)) throw Refused(SHELL)
@@ -491,10 +495,13 @@ class FileOps(
             if (names.exists(file) || FilePaths.existsNoFollow(file)) continue
             val parent = file.absoluteFile.parentFile ?: continue
             val volume = volumes().firstOrNull { FilePaths.isVolumeRoot(parent.path, it, canonical, names) } ?: continue
-            if (!bin.anchor(volume)) throw Refused(SHELL_UNPROVEN)
+            if (!bin.anchor(volume) && takesEntries(File(volume.root))) throw Refused(SHELL_UNPROVEN)
         }
         if (files.any(::inShell)) throw Refused(SHELL)
     }
+
+    /** [dir] is a folder in which a new entry can be made now (`access(W_OK)`): not gone, not read-only. */
+    private fun takesEntries(dir: File): Boolean = dir.isDirectory && Files.isWritable(dir.toPath())
 
     /** Rule 7 for a source on [volume]: not in the shell's folder, and not the volume itself (which holds it). */
     internal fun notSource(src: File, volume: FileVolume) {
@@ -554,11 +561,17 @@ class FileOps(
 
     private fun sameFile(a: File, b: File): Boolean = runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
 
-    /** [item] lies inside the folder [holder] (or is it), as both resolve. */
+    /**
+     * [item] lies inside the folder [holder] (or is it) — by FILE IDENTITY (P3-3, N2's rule): [item] as written and as it
+     * resolves, and every folder above each, is asked whether it is the same file as [holder] ([FilePaths.within]), so
+     * an alias of the holder (a name the volume folds onto it, a link to it) holds what the holder holds. The resolved
+     * text is asked too, and can only say "inside" more often. A path that cannot be resolved is inside: it cannot be
+     * proven not to be.
+     */
     internal fun inside(item: File, holder: File): Boolean {
         val i = canonicalOf(item) ?: return true
         val h = canonicalOf(holder) ?: return true
-        return i == h || FilePaths.under(i, h)
+        return i == h || FilePaths.under(i, h) || FilePaths.within(item.path, holder, canonical, names)
     }
 
     companion object {
@@ -577,7 +590,10 @@ class FileOps(
         /** A source, a destination or a resulting path in a volume's `.Tessera` (rule 7; the GATE review's M4). */
         const val SHELL = "inside the shell's own folder"
 
-        /** A not-yet-existing name directly under a volume's root, where the shell's folder cannot be made to compare with (N2). */
+        /**
+         * A not-yet-existing name directly under a volume's root, where the shell's folder cannot be made to compare with
+         * although the root takes new entries (N2; P3-6).
+         */
         const val SHELL_UNPROVEN = "the shell's own folder cannot be made on this storage"
 
         /** "Replace" asked of something that holds the very item that would replace it (N5). */

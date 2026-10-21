@@ -276,4 +276,22 @@ class FileOpsShellDirTest {
             bed.ops.zipCloseNested(first)
         }
     }
+
+    @Test
+    fun `nested zip - an archive in the shell's folder that only shares its NAME with this layer's open copy is not a source`() {
+        // The exemption matches the journal by the whole path (the GATE review's S5), never by the file's name.
+        val middle = zipBytes("inner.zip" to zipBytes("deep.txt" to "deep".toByteArray()))
+        val outer = File(bed.cardRoot, "QA-Files/outer.zip").apply { parentFile!!.mkdirs(); writeBytes(zipBytes("middle.zip" to middle)) }
+        (bed.ops.zipOpen(outer) as ZipOpen.Opened).archive.use { a ->
+            val ours = bed.ops.zipOpenNested(a, a.row("middle.zip")!!) as NestedZip.Opened
+            assertTrue(ours.file.path.startsWith(bed.cardRoot.path))
+            // The very same name, planted in the OTHER volume's temp folder: the journal does not name this path.
+            val planted = File(bed.root, ".Tessera/tmp/${ours.file.name}").apply { parentFile!!.mkdirs(); writeBytes(middle) }
+            (bed.ops.zipOpen(planted) as ZipOpen.Opened).archive.use { p ->
+                assertEquals(NestedZip.Failed("inside the shell's own folder"), bed.ops.zipOpenNested(p, p.row("inner.zip")!!))
+            }
+            assertEquals(listOf(planted.name), bed.names(planted.parentFile!!))
+            bed.ops.zipCloseNested(ours)
+        }
+    }
 }

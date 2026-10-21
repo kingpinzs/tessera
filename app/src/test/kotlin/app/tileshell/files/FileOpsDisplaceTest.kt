@@ -76,6 +76,60 @@ class FileOpsDisplaceTest {
         assertEquals(listOf(old.path), binRows().map { it.originalPath })
     }
 
+    // ---- P3-2 (pass 3): a cross-volume folder move whose displacement or rename-in fails AFTER the fill
+
+    /** `album/1.jpg` and `album/2.jpg` on the card, and a FILE named `album` in the primary volume's Download. */
+    private fun cardAlbumOverFile(): Pair<File, File> {
+        val album = bed.dir("album", bed.card)
+        bed.file("album/1.jpg", FilesBed.bytes(3_000), bed.card)
+        bed.file("album/2.jpg", FilesBed.bytes(4_000, 9), bed.card)
+        return album to bed.file("Download/album", "old".toByteArray())
+    }
+
+    private fun assertOriginalsWhole(album: File) {
+        assertEquals(listOf("1.jpg", "2.jpg"), bed.names(album))
+        assertArrayEquals(FilesBed.bytes(3_000), File(album, "1.jpg").readBytes())
+        assertArrayEquals(FilesBed.bytes(4_000, 9), File(album, "2.jpg").readBytes())
+    }
+
+    @Test
+    fun `a folder moved across volumes over a file, the bin unusable - it fails after the copy, and the originals and the file are both there`() {
+        val (album, old) = cardAlbumOverFile()
+        // The primary volume's bin cannot be used: the displacement fails once the folder has been copied whole.
+        File(bed.root, ".Tessera").writeText("x")
+        val why = BinObstacle.message(BinObstacle(BinObstacle.Kind.FILE, ".Tessera", inShell = false), bed.primary.root)
+
+        assertEquals(OpResult.Failed("what is there could not go to the Recycle Bin ($why)"), bed.ops.move(listOf(album), old.parentFile!!, conflict = replace))
+
+        assertOriginalsWhole(album)
+        assertEquals("old", old.readText())
+        // The copy was built under its journalled temp name and is gone; nothing else is left beside the file.
+        assertEquals(listOf("album"), bed.names(old.parentFile!!))
+        assertTrue(bed.journal.entries().isEmpty())
+    }
+
+    @Test
+    fun `a folder moved across volumes over a file, the rename-in failing - the originals stay and the old file is a bin row`() {
+        val (album, old) = cardAlbumOverFile()
+        // Another writer takes the name the moment the old file has gone to the bin, so the rename-in cannot land.
+        var theirs = false
+        val ops = FileOps({ bed.mounted.toList() }, bed.canonical, { bed.now }, { bed.scanned += it }, { line ->
+            bed.lines += line
+            if (!theirs && line == "bin delete ${old.path}: ok") { old.writeText("theirs"); theirs = true }
+        }, bed.journal)
+
+        assertEquals(OpResult.Failed("FileAlreadyExistsException"), ops.move(listOf(album), old.parentFile!!, conflict = replace))
+
+        assertTrue(theirs)
+        assertOriginalsWhole(album)
+        assertEquals("theirs", old.readText())
+        val row = ops.bin.list(bed.primary).single()
+        assertEquals(old.path, row.originalPath)
+        assertEquals("old", File(RecycleBin.binDir(bed.primary), row.binName).readText())
+        assertEquals(listOf("album"), bed.names(old.parentFile!!))
+        assertTrue(bed.journal.entries().isEmpty())
+    }
+
     @Test
     fun `a move with Replace from inside the folder being replaced is refused before anything is binned`() {
         val src = bed.file("Docs/notes/notes", "inner".toByteArray())
@@ -85,6 +139,49 @@ class FileOpsDisplaceTest {
         assertEquals("inner", src.readText())
         assertEquals(listOf("notes", "other.txt"), bed.names(File(bed.root, "Docs/notes")))
         assertTrue(binRows().isEmpty())
+    }
+
+    @Test
+    fun `a move with Replace from inside the folder being replaced, named through an alias of it, is refused by identity`() {
+        // P3-3 (pass 3): the probe's shape. `DOCS` leads to `Docs` (on the device: a case variant), and resolving a path
+        // keeps the name as written — so the text of the two paths says "not inside"; the files say otherwise.
+        val src = bed.file("Docs/notes/notes", "inner".toByteArray())
+        bed.file("Docs/notes/other.txt")
+        Files.createSymbolicLink(File(bed.root, "DOCS").toPath(), File(bed.root, "Docs").toPath())
+        val asWritten: (String) -> String? = { java.nio.file.Paths.get(it).toAbsolutePath().normalize().toString() }
+        val ops = FileOps({ bed.mounted.toList() }, asWritten, { bed.now }, { bed.scanned += it }, { bed.lines += it }, OpsJournal(bed.privateDir, { bed.now }, asWritten, { bed.lines += it }))
+
+        assertEquals(OpResult.Failed(FileOps.INSIDE_REPLACED), ops.move(listOf(src), File(bed.root, "DOCS"), conflict = replace))
+        assertEquals("inner", src.readText())
+        assertEquals(listOf("notes", "other.txt"), bed.names(File(bed.root, "Docs/notes")))
+        assertTrue(ops.bin.list(bed.primary).isEmpty())
+    }
+
+    @Test
+    fun `inside is a question of identity - a name the volume folds onto the holder holds what the holder holds`() {
+        val ops = bed.opsOn(FoldingVolume())
+        val src = bed.file("Docs/notes/notes")
+        bed.file("Docs/other/x")
+        assertTrue(ops.inside(src, File(bed.root, "DOCS/notes")))
+        assertTrue(ops.inside(src, File(bed.root, "Do\u200Bcs")))
+        assertTrue(ops.inside(src, File(bed.root, "Docs")))
+        assertFalse(ops.inside(src, File(bed.root, "Docs/other")))
+        assertFalse(ops.inside(File(bed.root, "Docs/other/x"), File(bed.root, "DOCS/notes")))
+    }
+
+    @Test
+    fun `inside fails closed - a source that cannot be resolved is taken as inside, and the Replace is refused`() {
+        // P3M20 (pass 3): the source resolves for every check before the conflict, and not after it.
+        val src = bed.file("A/a.txt", "new".toByteArray())
+        val old = bed.file("B/a.txt", "old".toByteArray())
+        var asked = false
+        val canonical: (String) -> String? = { if (asked && it == src.path) null else File(it).canonicalPath }
+        val ops = FileOps({ bed.mounted.toList() }, canonical, { bed.now }, { bed.scanned += it }, { bed.lines += it }, bed.journal)
+
+        assertEquals(OpResult.Failed(FileOps.INSIDE_REPLACED), ops.copy(listOf(src), old.parentFile!!) { asked = true; Conflict.REPLACE })
+        assertTrue(asked)
+        assertEquals("old", old.readText())
+        assertTrue(ops.bin.list(bed.primary).isEmpty())
     }
 
     @Test
@@ -159,5 +256,62 @@ class FileOpsDisplaceTest {
         try { FilePaths.renameNoReplace(from, to) { throw java.io.IOException("stopped") }; fail() } catch (e: java.io.IOException) { }
         assertFalse(to.exists())
         assertEquals("mine", from.readText())
+    }
+
+    // ---- P3-8 (pass 3): the no-replace rename's placeholder
+
+    @Test
+    fun `a failed no-replace rename leaves the placeholder when another writer has filled it - their bytes stay`() {
+        // P3M26: the cleanup removes the placeholder only while it is still the empty one made here.
+        val from = bed.file("A/a.txt", "mine".toByteArray())
+        val to = File(bed.root, "A/b.txt")
+        try {
+            FilePaths.renameNoReplace(from, to) {
+                to.writeText("theirs")
+                from.delete() // and the rename then has nothing to move
+            }
+            fail("renamed a file that was gone")
+        } catch (e: java.nio.file.NoSuchFileException) {
+        }
+        assertEquals("theirs", to.readText())
+    }
+
+    @Test
+    fun `a failed no-replace rename leaves an empty file that is not the placeholder it made - another writer's own`() {
+        val from = bed.file("A/a.txt", "mine".toByteArray())
+        val to = File(bed.root, "A/b.txt")
+        var theirs: Any? = null
+        try {
+            FilePaths.renameNoReplace(from, to) {
+                // Another writer saves its own (empty) b.txt the usual way, temp then rename, over the placeholder.
+                val temp = File(bed.root, "A/.b.txt.tmp").apply { createNewFile() }
+                theirs = Files.readAttributes(temp.toPath(), java.nio.file.attribute.BasicFileAttributes::class.java).fileKey()
+                Files.move(temp.toPath(), to.toPath(), java.nio.file.StandardCopyOption.REPLACE_EXISTING)
+                from.delete()
+            }
+            fail("renamed a file that was gone")
+        } catch (e: java.nio.file.NoSuchFileException) {
+        }
+        assertTrue(to.isFile)
+        assertEquals(theirs, Files.readAttributes(to.toPath(), java.nio.file.attribute.BasicFileAttributes::class.java).fileKey())
+    }
+
+    /** The process died here: not an Exception, so nothing catches it or cleans up after it. */
+    private class Killed : Error()
+
+    @Test
+    fun `a kill between the exclusive create and the rename loses nothing and replaces nothing - an empty name is all it leaves`() {
+        // Why this placeholder is not journalled: see FilePaths.renameNoReplace.
+        val from = bed.file("A/a.txt", "mine".toByteArray())
+        val dir = bed.file("A/album/1.jpg", "photo".toByteArray()).parentFile!!
+        val to = File(bed.root, "A/b.txt")
+        val toDir = File(bed.root, "A/album2")
+        try { FilePaths.renameNoReplace(from, to) { throw Killed() }; fail() } catch (e: Killed) { }
+        try { FilePaths.renameNoReplace(dir, toDir) { throw Killed() }; fail() } catch (e: Killed) { }
+        assertEquals("mine", from.readText())
+        assertEquals("photo", File(dir, "1.jpg").readText())
+        assertEquals(0L, to.length())
+        assertEquals(emptyList<String>(), bed.names(toDir))
+        assertEquals(listOf("a.txt", "album", "album2", "b.txt"), bed.names(from.parentFile!!))
     }
 }

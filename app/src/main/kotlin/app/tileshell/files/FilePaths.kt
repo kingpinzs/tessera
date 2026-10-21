@@ -6,6 +6,7 @@ import java.io.IOException
 import java.nio.file.Files
 import java.nio.file.LinkOption
 import java.nio.file.StandardCopyOption
+import java.nio.file.attribute.BasicFileAttributes
 
 /**
  * One mounted storage volume as Files sees it: [uuid] is `StorageVolume.getUuid()` ([FilePaths.PRIMARY] for the primary
@@ -97,6 +98,12 @@ interface FileIdentity {
     /** The names in [dir] exactly as the volume holds them; null when it cannot be listed. */
     fun names(dir: File): List<String>?
 
+    /**
+     * [a] and [b] are one and the same ENTRY: as [same], except that a link is itself and never the file it leads to
+     * (the GATE review's N7: a link and its target are two entries, and a rename of one onto the other replaces).
+     */
+    fun sameEntry(a: File, b: File): Boolean = if (FilePaths.isSymlink(a) || FilePaths.isSymlink(b)) FilePaths.sameEntry(a, b) else same(a, b)
+
     object Real : FileIdentity {
         override fun exists(file: File): Boolean = FilePaths.existsNoFollow(file)
         override fun same(a: File, b: File): Boolean = a == b || runCatching { Files.isSameFile(a.toPath(), b.toPath()) }.getOrDefault(false)
@@ -117,15 +124,80 @@ object FilePaths {
 
     private const val EXT_MAX = 32
 
-    /** Text fit for one diagnostics line: control characters (a newline in a file name) become `?`, the length is capped. */
+    /**
+     * Text fit to be SHOWN — on one diagnostics line, in a row, in a message — with the length capped at [max]. Every
+     * character that is invisible or moves the text around it becomes `?`, one per character, so what is drawn is
+     * every character there is, in the order it is stored: a control character (a newline in a file name), a format
+     * character (Unicode Cf: the bidi controls U+202A..U+202E, U+2066..U+2069, U+200E, U+200F, U+061C; the zero-width
+     * U+200B, U+200C, U+200D, U+2060, U+FEFF; the soft hyphen; the tag characters), a line or paragraph separator, and
+     * half a surrogate pair (the GATE review's N9: a bin row's name and folder come from the index and from names another
+     * app chose).
+     * Two uses of format characters are an emoji's own and are kept: a ZERO WIDTH JOINER between two pictographs (an
+     * emoji ZWJ sequence, "family" or "rainbow flag"; variation selectors and skin tones beside it skipped), and a run of
+     * tag characters U+E0020..U+E007E after U+1F3F4 ended by the cancel tag U+E007F (an emoji tag sequence, a
+     * subdivision flag). Anywhere else they are `?` like the rest.
+     */
     fun lineText(text: String?, max: Int = 400): String {
-        val t = text.orEmpty()
-        val out = StringBuilder(minOf(t.length, max))
-        for (c in t) {
+        val cps = text.orEmpty().codePoints().toArray()
+        val emoji = BooleanArray(cps.size)
+        var i = 0
+        while (i < cps.size) {
+            if (cps[i] == BLACK_FLAG) {
+                var j = i + 1
+                while (j < cps.size && cps[j] in TAG_FIRST..TAG_LAST) j++
+                if (j > i + 1 && j < cps.size && cps[j] == CANCEL_TAG) {
+                    for (k in i + 1..j) emoji[k] = true
+                    i = j + 1
+                    continue
+                }
+            } else if (cps[i] == ZWJ && joinsPictographs(cps, i)) {
+                emoji[i] = true
+            }
+            i++
+        }
+        val out = StringBuilder(minOf(cps.size, max))
+        for (k in cps.indices) {
             if (out.length >= max) break
-            out.append(if (c < ' ' || c == '\u007f' || c == ' ' || c == ' ') '?' else c)
+            val hidden = when (Character.getType(cps[k]).toByte()) {
+                Character.CONTROL, Character.FORMAT, Character.LINE_SEPARATOR, Character.PARAGRAPH_SEPARATOR, Character.SURROGATE -> !emoji[k]
+                else -> false
+            }
+            if (hidden) out.append('?') else out.appendCodePoint(cps[k])
         }
         return out.toString()
+    }
+
+    private const val ZWJ = 0x200D
+    private const val BLACK_FLAG = 0x1F3F4
+    private const val TAG_FIRST = 0xE0020
+    private const val TAG_LAST = 0xE007E
+    private const val CANCEL_TAG = 0xE007F
+
+    /** The ZWJ at [at] has a pictograph on each side, past any variation selector or skin tone: an emoji ZWJ sequence. */
+    private fun joinsPictographs(cps: IntArray, at: Int): Boolean {
+        var before = at - 1
+        while (before >= 0 && emojiModifier(cps[before])) before--
+        var after = at + 1
+        while (after < cps.size && emojiModifier(cps[after])) after++
+        return before >= 0 && after < cps.size && pictographic(cps[before]) && pictographic(cps[after])
+    }
+
+    /** U+FE0E / U+FE0F (text / emoji presentation) and the five skin tones U+1F3FB..U+1F3FF. */
+    private fun emojiModifier(cp: Int): Boolean = cp == 0xFE0E || cp == 0xFE0F || cp in 0x1F3FB..0x1F3FF
+
+    /**
+     * A pictograph that may begin or end an emoji ZWJ sequence: the blocks Unicode's Extended_Pictographic property
+     * covers (UTS #51), held as a table here — `Character.isExtendedPictographic` is Java 21 and is not in Android's
+     * `Character` (minSdk 34), and `android.icu`'s property is not on the JVM the unit tests run on — so the device and
+     * the tests answer alike. Whole blocks, unassigned code points included, as Extended_Pictographic itself reserves
+     * them for emoji to come; the regional indicators and the skin tones are not pictographs.
+     */
+    internal fun pictographic(cp: Int): Boolean = when (cp) {
+        0x00A9, 0x00AE, 0x203C, 0x2049, 0x2122, 0x2139, 0x24C2, 0x3030, 0x303D, 0x3297, 0x3299 -> true
+        in 0x1F1E6..0x1F1FF, in 0x1F3FB..0x1F3FF -> false
+        in 0x2194..0x21AA, in 0x2300..0x23FF, in 0x25AA..0x25FE, in 0x2600..0x27BF, in 0x2934..0x2935, in 0x2B00..0x2BFF,
+        in 0x1F000..0x1FAFF, in 0x1FC00..0x1FFFD -> true
+        else -> false
     }
 
     /** [path] lies strictly under [root]; both already canonical. An empty or all-slash root names the whole disk and matches nothing. */
@@ -205,6 +277,14 @@ object FilePaths {
         val atRoot = dir.parentFile?.let { it.path.trimEnd('/') == volume.root.trimEnd('/') || id.same(it, File(volume.root)) } == true
         return (atRoot && dir.name.equals(SHELL_DIR, ignoreCase = true)) || id.same(dir, shell)
     }
+
+    /**
+     * What a search walk down from an allowed folder skips: the shell's own folder, asked of each folder before it is
+     * entered by the one question [isShellDir] (at most two identity questions), never [inShellDir]'s walk up every
+     * folder above it (pass 3, P3-5). The walk starts outside the shell's folder and follows no link, so the only way
+     * in is to meet that folder itself.
+     */
+    fun walkSkip(volume: FileVolume, id: FileIdentity = FileIdentity.Real): (File) -> Boolean = { isShellDir(it, volume, id) }
 
     /**
      * [path] is `<volume>/Android` or inside it — by identity ([within]) and, for a folder that is not there, by its
@@ -297,6 +377,12 @@ object FilePaths {
 
     fun isSymlink(f: File): Boolean = Files.isSymbolicLink(f.toPath())
 
+    /** [a] and [b] are one directory entry, links NOT followed (`lstat`'s device and inode); the same path always is. */
+    fun sameEntry(a: File, b: File): Boolean = a == b || runCatching {
+        val key = Files.readAttributes(a.toPath(), BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS).fileKey()
+        key != null && key == Files.readAttributes(b.toPath(), BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS).fileKey()
+    }.getOrDefault(false)
+
     /** A real directory, not a link to one: the only kind a walk descends into. */
     fun isRealDirectory(f: File): Boolean = Files.isDirectory(f.toPath(), LinkOption.NOFOLLOW_LINKS)
 
@@ -334,9 +420,18 @@ object FilePaths {
      *  2. [from] is renamed onto that placeholder by ONE `rename(2)` (ATOMIC_MOVE: no copy on another device, no
      *     delete-then-rename). A folder goes only onto an EMPTY folder, so whatever another writer put into the
      *     placeholder meanwhile fails the rename instead of being lost.
-     * A failed step 2 removes the placeholder (only while it is still empty) and leaves [from] where it was.
+     * A failed step 2 removes the placeholder — only while it is still the one made in step 1 (the same file, by device
+     * and inode) and still empty, so what another writer put there, bytes in it or a file of its own renamed into its
+     * place, stays (pass 3, P3M26) — and leaves [from] where it was. (An empty file another writer CREATES there after
+     * deleting the placeholder may take its inode number, and then goes too: it held no byte.)
      * What remains: a writer that OPENS the empty placeholder file between the two steps and writes into it loses those
      * bytes when the rename lands. Nothing that was there before step 1 can be replaced.
+     * A KILL between the two steps leaves the empty placeholder under [to]'s name, and [from] whole where it was; it is
+     * not journalled (pass 3, P3-8), because the sweep (r3 D4) deletes only a temp's NAME, never a name the user owns, and
+     * after a kill an empty placeholder is not told apart from a rename that landed a 0-byte file or an empty folder
+     * without proof that [from] still stands — which every caller (the bin's delete and restore, rename, the sweep's
+     * own finish) would have to journal under an operation it does not have. What it leaves loses no byte and
+     * replaces nothing: an empty name, which the user sees and can delete.
      * [gap] runs between the steps — a test's other writer.
      */
     @Throws(IOException::class)
@@ -346,14 +441,21 @@ object FilePaths {
         if (!existsNoFollow(from)) throw java.nio.file.NoSuchFileException(from.path)
         val folder = isRealDirectory(from)
         if (folder) Files.createDirectory(target) else Files.createFile(target)
+        val made = runCatching { entryKey(target) }.getOrNull()
         try {
             gap()
             Files.move(source, target, StandardCopyOption.ATOMIC_MOVE)
         } catch (e: Exception) {
-            runCatching { if (folder || (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS) && Files.size(target) == 0L)) Files.delete(target) }
+            runCatching {
+                val ours = made == null || entryKey(target) == made
+                if (ours && (folder || (Files.isRegularFile(target, LinkOption.NOFOLLOW_LINKS) && Files.size(target) == 0L))) Files.delete(target)
+            }
             throw e
         }
     }
+
+    /** The entry's own identity (`lstat`'s device and inode), links not followed; null where the volume has none. */
+    private fun entryKey(path: java.nio.file.Path): Any? = Files.readAttributes(path, BasicFileAttributes::class.java, LinkOption.NOFOLLOW_LINKS).fileKey()
 
     /**
      * Temp-and-rename (LayoutStore's shape): [text] is written to `<name>.tmp` beside [file], synced, and renamed over it,
