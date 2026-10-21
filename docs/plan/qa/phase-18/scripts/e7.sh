@@ -113,7 +113,7 @@ jvm_gate '*FileShareGuard*' '*FileShareGuard*' \
   "a primary-volume path is allowed" \
   "a storage UUID path on a removable volume is allowed"
 assert_eq "FileShareGuardTest reads the diagnostics it wrote ([files] share refused: outside shared storage, in the test's source)" "yes" \
-  "$(grep -q 'share refused: outside shared storage' "$REPO/app/src/test/kotlin/app/tileshell/files/FileShareGuardTest.kt" && echo yes || echo no)"
+  "$(grep -q 'share refused: outside shared storage' "${JVM_REPO:-$REPO}/app/src/test/kotlin/app/tileshell/files/FileShareGuardTest.kt" && echo yes || echo no)"
 jvm_gate_in provider '*FilesProviderRules*' '*FilesProviderRules*' \
   "the app's own filesDir file is refused" \
   "a dot-dot traversal out of shared storage is refused" \

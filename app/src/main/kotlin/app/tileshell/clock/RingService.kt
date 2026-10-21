@@ -236,15 +236,8 @@ class RingService : Service() {
         if (source != null) {
             val audio = getSystemService(AudioManager::class.java)
             focus = AudioFocusRequest.Builder(AudioManager.AUDIOFOCUS_GAIN_TRANSIENT).setAudioAttributes(attrs).build().also { audio.requestAudioFocus(it) }
-            player = runCatching {
-                MediaPlayer().apply {
-                    setAudioAttributes(attrs)
-                    setDataSource(this@RingService, source)
-                    isLooping = true
-                    prepare()
-                    start()
-                }
-            }.onFailure { Diagnostics.add("alarms", "ring ${ring.logId} could not play $source: $it") }.getOrNull()
+            // N11 (ledger L18-3): a sound that will not play rings the default sound; the default failing too is said.
+            take(RingSoundRules.start(ring.logId, source, { defaultSound() }) { open(ring.logId, attrs, it) })
             applyCallLevel()
             val listener = AudioManager.OnModeChangedListener { applyCallLevel() }
             audio.addOnModeChangedListener(mainExecutor, listener)
@@ -255,6 +248,44 @@ class RingService : Service() {
             VibrationEffect.createWaveform(longArrayOf(0, 500, 500), 0),
             VibrationAttributes.createForUsage(VibrationAttributes.USAGE_ALARM),
         )
+    }
+
+    /** The shell's default alarm sound: the file [source] falls back to, and what plays when the chosen sound will not. */
+    private fun defaultSound(): Uri = Uri.fromFile(AlarmSounds.file(this, AlarmSounds.default))
+
+    /**
+     * Starts [source] on the alarm stream, looping — or throws, the player released first (a sound that opens but will
+     * not decode throws in `prepare()`). An error while it plays is the same failure: [RingSoundRules.fallback] says
+     * what plays instead.
+     */
+    private fun open(id: String, attrs: AudioAttributes, source: Uri): MediaPlayer {
+        val p = MediaPlayer()
+        try {
+            p.setAudioAttributes(attrs)
+            p.setDataSource(this@RingService, source)
+            p.isLooping = true
+            p.prepare()
+            p.setOnErrorListener { failed, what, extra ->
+                if (player === failed) {
+                    player = null
+                    failed.release()
+                    take(RingSoundRules.fallback(id, source, "error $what $extra", { defaultSound() }) { open(id, attrs, it) })
+                    applyCallLevel()
+                }
+                true
+            }
+            p.start()
+            return p
+        } catch (e: Throwable) {
+            p.release()
+            throw e
+        }
+    }
+
+    /** What the rule started is the ring's player (null: vibration only), and its lines are written. */
+    private fun take(started: RingSoundRules.Started<MediaPlayer>) {
+        started.lines.forEach { Diagnostics.add("alarms", it) }
+        player = started.player
     }
 
     /** The sound's URI, or null for Vibrate only; a file that cannot be read rings the default and says so. */

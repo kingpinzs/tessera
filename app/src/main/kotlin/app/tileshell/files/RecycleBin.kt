@@ -6,6 +6,7 @@ import app.tileshell.net.jsonLong
 import app.tileshell.net.jsonObject
 import app.tileshell.net.jsonString
 import java.io.File
+import java.io.FileInputStream
 
 /**
  * The shell-owned Recycle Bin (Q3 C; T18-1, r3 D3): one bin per volume at `<volume root>/.Tessera/bin/`, holding a
@@ -19,14 +20,15 @@ import java.io.File
  *     inside its own volume to `<deleted-at ms>-<seq>-<name cut to fit 255 bytes, extension kept>`; `seq` is bumped
  *     until no bin file and no record holds that name, compared ignoring case (FAT). An index that cannot be written
  *     fails the delete and the file stays where it was.
- *  2. **Damage loses nothing.** Index missing or unreadable → the bin's files are listed by bin name and restore to
+ *  2. **Damage loses nothing.** Index missing, unreadable or over its bounds ([MAX_INDEX_BYTES], [MAX_INDEX_RECORDS]:
+ *     never read whole; N8) → the bin's files are listed by bin name and restore to
  *     `<volume>/Download/Restored/`, with `bin index <volume>: rebuilt (<why>)`; a record whose file is gone is dropped
  *     on the next read; a bin file with no record lists by its bin name; a bin folder that is gone is made again by the
  *     next delete (`rebuilt (bin folder missing)`).
  *  3. **The index is shared storage, so it is not trusted.** A record's original path is honoured only in the exact
  *     form a delete writes ([restorable]): already canonical (no `.` or `..` segment, no doubled separator, no link on
  *     the way), under its own volume, not the volume's root, outside `.Tessera` and outside `Android/`, ending in a
- *     valid name. Any other record is no record at all: it is dropped at the next read, its file lists by its bin name
+ *     valid name, no longer than PATH_MAX. Any other record is no record at all: it is dropped at the next read, its file lists by its bin name
  *     and restores to `Download/Restored/`. A bin name is one plain file name. Nothing here follows a symlink.
  *  4. **A row says where Restore will put it** ([Entry.restoreDir]), and Restore puts it exactly there
  *     ([restoreTarget] answers both), so the user sees the destination before the tap.
@@ -50,7 +52,9 @@ class RecycleBin(
 ) {
     /**
      * One row of the bin page. [name] is the original name — or the bin name when no record names the file ([indexed]
-     * false: [originalPath] and [deletedAt] are then null). [size] is the record's, or the file's own.
+     * false: [originalPath] and [deletedAt] are then null) — as it may be SHOWN ([FilePaths.lineText]: a bidi control or
+     * a zero-width character is a `?`; N9). [size] is the bin file's own (a folder's: its files'), never the record's:
+     * the index is shared storage, and what Empty frees is what the files hold.
      */
     data class Entry(
         val volume: FileVolume,
@@ -237,22 +241,30 @@ class RecycleBin(
     private fun entries(volume: FileVolume, records: List<Record>): List<Entry> {
         val bin = binDir(volume)
         val indexed = records.sortedWith(compareByDescending<Record> { it.deletedAt }.thenByDescending { it.bin }).map { r ->
-            Entry(volume, r.bin, File(r.path).name.ifEmpty { r.bin }, r.path, r.deletedAt, r.size, FilePaths.isRealDirectory(File(bin, r.bin)))
+            val f = File(bin, r.bin)
+            Entry(volume, r.bin, shown(File(r.path).name.ifEmpty { r.bin }), r.path, r.deletedAt, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
         }
         val known = records.map { it.bin }.toHashSet()
         val loose = bin.listFiles().orEmpty().filter { !reservedIn(bin, it.name) && it.name !in known }.sortedBy { it.name }.map { f ->
-            Entry(volume, f.name, f.name, null, null, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
+            Entry(volume, f.name, shown(f.name), null, null, FilePaths.treeBytes(f), FilePaths.isRealDirectory(f))
         }
         return indexed + loose
     }
+
+    /** A name as a row shows it: every character of it, none invisible or reordering (N9); a name is never capped here. */
+    private fun shown(name: String): String = FilePaths.lineText(name, Int.MAX_VALUE)
 
     /** The index as it can be trusted: records that are well-formed, name one plain bin file each, and whose file is there. */
     private fun load(volume: FileVolume): Index {
         val bin = binDir(volume)
         val file = File(bin, INDEX)
         if (!FilePaths.existsNoFollow(file)) return Index(emptyList(), "index missing", false)
-        val root = runCatching { MiniJson.parseOrNull(file.readText()) }.getOrNull().jsonObject()
+        // Bounded (N8): over either bound the index is taken as unreadable — its files list by bin name (rule 2).
+        val text = runCatching { boundedText(file) }.getOrElse { return Index(emptyList(), "index unreadable", false) }
+            ?: return Index(emptyList(), TOO_LARGE, false)
+        val root = MiniJson.parseOrNull(text).jsonObject()
         val rows = root?.get("records") as? List<*> ?: return Index(emptyList(), "index unreadable", false)
+        if (rows.size > MAX_INDEX_RECORDS) return Index(emptyList(), TOO_LARGE, false)
         var dropped = false
         val seen = HashSet<String>()
         val records = rows.jsonArray().mapNotNull { row ->
@@ -265,6 +277,12 @@ class RecycleBin(
             Record(name, path, o.jsonLong("deletedAt") ?: 0L, o.jsonLong("size") ?: 0L)
         }
         return Index(records, null, dropped)
+    }
+
+    /** [file]'s text, reading no more than [MAX_INDEX_BYTES] + 1 bytes; null when it holds more than [MAX_INDEX_BYTES]. */
+    private fun boundedText(file: File): String? {
+        val bytes = FileInputStream(file).use { it.readNBytes(MAX_INDEX_BYTES + 1) }
+        return if (bytes.size > MAX_INDEX_BYTES) null else String(bytes, Charsets.UTF_8)
     }
 
     private fun writeIndex(volume: FileVolume, records: List<Record>) {
@@ -347,13 +365,41 @@ class RecycleBin(
      */
     private fun restorable(path: String, volume: FileVolume): Boolean {
         val target = File(path)
-        return target.isAbsolute && FilePaths.validName(target.name) &&
-            FilePaths.volumeOf(target.path, listOf(volume), canonical) != null &&
-            !FilePaths.isVolumeRoot(target.path, volume, canonical, id) &&
-            !FilePaths.inShellDir(target.path, volume, canonical, id) &&
-            // Exactly as it resolves: no `.` or `..` segment, no doubled or trailing separator, no link on the way.
-            runCatching { canonical(path) }.getOrNull() == path &&
-            !FilePaths.underAndroid(path, volume, canonical, id)
+        if (!target.isAbsolute || !FilePaths.validName(target.name)) return false
+        // Strictly under its own volume, and no longer than any path a delete can write ([MAX_RECORD_PATH_BYTES]) —
+        // asked of the TEXT, before anything is resolved.
+        val root = runCatching { canonical(volume.root) }.getOrNull()?.trimEnd('/') ?: return false
+        if (!FilePaths.under(path, root)) return false
+        if (FilePaths.utf8(path) > MAX_RECORD_PATH_BYTES) return false
+        // Exactly as it resolves: no `.` or `..` segment, no doubled or trailing separator, no link on the way.
+        if (!asItResolves(path, root)) return false
+        // With no link on the way, the one folder of the path that can be the shell's own or `Android` — under any name
+        // the volume folds onto them (N2) — is its first under the root: a folded name is an alias of its own sibling
+        // only. So each is ONE identity question ([FilePaths.isShellDir]'s form), not a walk up every folder (P3-5).
+        val top = File(root, path.substring(root.length + 1).substringBefore('/'))
+        return !FilePaths.isShellDir(top, volume, id) &&
+            !(top.name.equals(ANDROID_DIR, ignoreCase = true) || id.same(top, File(volume.root, ANDROID_DIR)))
+    }
+
+    /**
+     * [path], strictly under the resolved [root], is exactly as it resolves: no empty, `.` or `..` segment (a doubled
+     * or trailing separator is an empty one), and no link on the way. Only what IS there can be a link, so the path is
+     * resolved at its deepest folder that exists — found by a binary search of its folders, a few `stat`s — and the
+     * names below that are names of nothing. One resolve of an existing path however deep the path is: resolving a
+     * deep path that is not there walks back up it one folder at a time.
+     */
+    private fun asItResolves(path: String, root: String): Boolean {
+        val segments = path.substring(root.length + 1).split('/')
+        if (segments.any { it.isEmpty() || it == "." || it == ".." }) return false
+        fun upTo(n: Int) = if (n == 0) root else root + "/" + segments.subList(0, n).joinToString("/")
+        var there = 0
+        var notThere = segments.size + 1
+        while (notThere - there > 1) {
+            val mid = (there + notThere) / 2
+            if (File(upTo(mid)).exists()) there = mid else notThere = mid
+        }
+        val deepest = upTo(there)
+        return runCatching { canonical(deepest) }.getOrNull() == deepest
     }
 
     private sealed interface Folder {
@@ -404,6 +450,22 @@ class RecycleBin(
 
         /** [name] is one of [RESERVED] by its text, in any case. What the VOLUME makes of a name is [reservedIn]'s. */
         fun reserved(name: String): Boolean = RESERVED.any { it.equals(name, ignoreCase = true) }
+
+        /**
+         * The index's bounds (the GATE review's N8; rule 2): at most this many bytes are read and this many records taken.
+         * A record a delete writes is 150-300 bytes (190 for a camera-roll name, measured), so 40,000 records — forty
+         * thousand items deleted one by one, a folder being one record, and never emptied — fit in 8 MiB. Parsing that
+         * much costs about 45 MB of passing heap in the launcher's own process (JVM: 25 MB for 1.9 MB, 54 MB for 9.6 MB)
+         * and the read took 0.4 s at 50,000 records on the desktop; the records are then each checked (rule 3).
+         */
+        const val MAX_INDEX_BYTES = 8 * 1024 * 1024
+        const val MAX_INDEX_RECORDS = 40_000
+
+        /** A record's own bound (rule 3): no path a delete writes is longer than PATH_MAX (4,096 bytes with its closing NUL). */
+        const val MAX_RECORD_PATH_BYTES = 4095
+
+        /** The `bin index <volume>: rebuilt (<why>)` line's why for an index over a bound. */
+        const val TOO_LARGE = "index too large"
 
         /** A bin that is not `<volume>/.Tessera/bin` itself does nothing (rule 5): the `bin index` line's word for it. */
         const val UNUSABLE = "the bin folder is not the shell's own"

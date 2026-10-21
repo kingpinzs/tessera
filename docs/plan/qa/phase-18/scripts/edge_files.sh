@@ -247,7 +247,7 @@ edge_FULL_VOLUME() {
     local m l md5big
     md5big="$(fx_md5 big.bin)"
     EDGE_UNDO=_undo_fill
-    _undo_fill() { unfill_volume; assert_eq "unfill_volume: fill.bin is gone" "" "$(lsdev /sdcard/fill.bin)"; assert_eq "awake after unfill_volume" "Awake" "$(wake_device)"; EDGE_UNDO=""; }
+    _undo_fill() { unfill_volume; assert_eq "unfill_volume: fill.bin is gone (ls -a /sdcard; a path lookup can answer from FUSE's stale entry, e4b.sh L)" "" "$(q 'ls -a /sdcard' | grep -Fx fill.bin)"; assert_eq "awake after unfill_volume" "Awake" "$(wake_device)"; EDGE_UNDO=""; }
     if fill_volume 1048576; then
       _verdict PASS "fill_volume 1048576 (its own assert: free <= 1 MB + 5 MB)" "$(q 'df -k /sdcard' | awk 'NR==2 { print $4 " KB free" }')"
       assert_eq "awake after the fill" "Awake" "$(wake_device)"

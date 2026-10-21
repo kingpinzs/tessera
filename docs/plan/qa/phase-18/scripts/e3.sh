@@ -47,7 +47,7 @@ assert_contains "[files] list <path>: <n> entries <ms> ms (E12's producer)" "[fi
 record "the list line" "$(printf '%s\n' "$SL" | grep -o '\[files\] list .*' | tail -1)"
 ROOTS="$(ring_since "$PMARK" | grep -o '\[files\] roots: .*' | tail -1)"
 record "the roots line" "$ROOTS"
-assert_eq "[files] roots: <n> (<names>) (E12's producer): one root, named" "yes" "$(printf '%s\n' "$ROOTS" | grep -qE '^\[files\] roots: 1 \([^)]+\)' && echo yes || echo no)"
+assert_eq "[files] roots: <n> (<names>) (E12's producer): one root, named" "yes" "$(grep -qE '^\[files\] roots: 1 \([^)]+\)' <<< "$ROOTS" && echo yes || echo no)"
 # The pitch and the two lines, on the first page: consecutive icon tops, and the detail under its name.
 PITCH="$(python3 - "$ROW_DIR/01-qa.xml" <<'PY'
 import html, re, sys
@@ -81,7 +81,7 @@ while IFS= read -r n; do
   case "$n" in sub|hidden|recent) key="$n/" ;; *) key="$n" ;; esac
   assert_eq "files_detail:$n is the table's literal" "$(fx_detail "$key")" "$(detail_of 02-name "$n")"
 done < <(fx_order name)
-assert_eq "files_detail:sub is a date only" "yes" "$(detail_of 02-name sub | grep -qE '^[0-9]+/[0-9]+/[0-9]{4}$' && echo yes || echo no)"
+assert_eq "files_detail:sub is a date only" "yes" "$(grep -qE '^[0-9]+/[0-9]+/[0-9]{4}$' <<< "$(detail_of 02-name sub)" && echo yes || echo no)"
 # Icons: every row has its files_icon: node; a type icon and a thumbnail differ in width (recorded).
 MISSING=""; for n in $(fx_order name); do grep -q "resource-id=\"files_icon:$n\"" "$ROW_DIR"/02-name-*.xml || MISSING="$MISSING $n"; done
 assert_eq "every row has its files_icon: node (type icon or thumbnail)" "" "$MISSING"

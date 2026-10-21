@@ -113,6 +113,31 @@ class FileOpsIdentityTest {
         assertTrue(File(bin, ".index.json").isFile)
     }
 
+    // ---- the sweep's bin check (round 3): by identity, as N2's rule requires
+
+    @Test
+    fun `the sweep never removes a journalled path the volume folds into the bin - as written it is not the bin's text`() {
+        bed.ops.binDelete(bed.file("Download/mine.txt"))
+        val bin = RecycleBin.binDir(bed.primary)
+        val binned = listOf(File(bin, ".1000-0-x.abc.part"), File(bin, ".1000-1-y.abc.part")).onEach { it.writeText("binned") }
+        // `.Teßera` and `.Tess<U+200B>era` lead to the shell's folder, and resolving keeps the name as written: the device's
+        // folding, made real on the host by a link per alias. As text, neither path is the bin's.
+        for (alias in listOf(sharp, zeroWidth)) Files.createSymbolicLink(File(bed.root, alias).toPath(), File(bed.root, ".Tessera").toPath())
+        val written = listOf(File(bed.root, "$sharp/bin/${binned[0].name}"), File(bed.root, "$zeroWidth/bin/${binned[1].name}"))
+        val journal = { OpsJournal(bed.privateDir, { bed.now }, asWritten, { bed.lines += it }, folding) }
+        journal().put("op1", written[0].path, bed.primary.uuid)
+        journal().put("op2", written[1].path, bed.primary.uuid)
+
+        assertEquals(0, journal().sweep(bed.mounted))
+        assertTrue(binned.all { it.readText() == "binned" })
+        assertTrue(journal().entries().isEmpty())
+        // The control: an ordinary temp of a dead operation is still swept.
+        val temp = bed.file("Download/.a.txt.zz00.part")
+        journal().put("op3", temp.path, bed.primary.uuid)
+        assertEquals(1, journal().sweep(bed.mounted))
+        assertFalse(temp.exists())
+    }
+
     // ---- a name that is NOT THERE yet, directly under a volume's root
 
     @Test
@@ -127,6 +152,62 @@ class FileOpsIdentityTest {
         assertEquals(OpResult.Failed(FileOps.SHELL), ops.zipExtract(zip(File(bed.root, "$sharp.zip"), "bin/.index.json" to "{}"), conflict = replace))
         // An ordinary name at the root is made as before.
         assertEquals(OpResult.Done(listOf(File(bed.root, "Trip").path)), ops.newFolder(bed.root, "Trip"))
+    }
+
+    // ---- P3-6 (pass 3): "the shell's own folder cannot be made" only where that IS what stops the write
+
+    /** A volume on which the shell's folder cannot be made: whatever is asked, `.Tessera` is not there. */
+    private class Unmakeable : FolderNames by FolderNames.Real {
+        override fun exists(file: File): Boolean = file.name != FilePaths.SHELL_DIR && FolderNames.Real.exists(file)
+    }
+
+    @Test
+    fun `a root that takes no new entry - a new folder and a rename of a gone file fail as they did before the anchor`() {
+        val root = bed.cardRoot
+        root.setWritable(false)
+        try {
+            assertEquals(OpResult.Failed("IOException"), bed.ops.newFolder(root, "Trip"))
+            assertEquals(OpResult.Failed("zz-missing is gone"), bed.ops.rename(File(root, "zz-missing"), "y"))
+            assertEquals(emptyList<String>(), bed.names(root))
+        } finally {
+            root.setWritable(true)
+        }
+    }
+
+    @Test
+    fun `a root that takes new entries but not the shell's folder - a new name there is refused, unproven, and nothing is made`() {
+        val ops = bed.opsOn(Unmakeable())
+        val docs = bed.dir("Docs", bed.card)
+        assertEquals(OpResult.Failed(FileOps.SHELL_UNPROVEN), ops.newFolder(bed.cardRoot, "Trip"))
+        assertEquals(OpResult.Failed(FileOps.SHELL_UNPROVEN), ops.rename(docs, "Trip"))
+        assertEquals("new folder ${File(bed.cardRoot, "Trip").path}: failed the shell's own folder cannot be made on this storage", bed.lines[bed.lines.size - 2])
+        assertFalse(File(bed.cardRoot, "Trip").exists())
+        assertTrue(docs.isDirectory)
+        // A name that is not directly under a volume's root needs no anchor.
+        assertEquals(OpResult.Done(listOf(File(docs, "Trip").path)), ops.newFolder(docs, "Trip"))
+    }
+
+    /**
+     * P3M15 (pass 3): the volume answers the delete's `mkdirs` with a folder it LISTS under another name — another app
+     * made `.Teßera` between the delete's first look and its `mkdirs`, and the volume folded `.Tessera` onto it.
+     */
+    private class FoldedAfterMkdirs(private val root: File) : FolderNames by FolderNames.Real {
+        private fun real(f: File) = File(f.path.replace("/$sharpName", "/${FilePaths.SHELL_DIR}"))
+        override fun exists(file: File): Boolean = FolderNames.Real.exists(real(file))
+        override fun same(a: File, b: File): Boolean = FolderNames.Real.same(real(a), real(b))
+        override fun names(dir: File): List<String>? =
+            FolderNames.Real.names(dir)?.map { if (dir == root && it == FilePaths.SHELL_DIR) sharpName else it }
+        companion object { const val sharpName = ".Teßera" }
+    }
+
+    @Test
+    fun `a bin folder that mkdirs made under a name the volume lists otherwise is not adopted - the delete fails, the file stays`() {
+        val ops = bed.opsOn(FoldedAfterMkdirs(bed.root))
+        val a = bed.file("Download/a.txt")
+        val r = ops.binDelete(a)
+        assertTrue(r.toString(), r is OpResult.Failed && (r as OpResult.Failed).reason.contains("named $sharp is in the way on ${bed.primary.root}"))
+        assertTrue(a.isFile)
+        assertEquals(emptyList<String>(), bed.names(RecycleBin.binDir(bed.primary)))
     }
 
     @Test

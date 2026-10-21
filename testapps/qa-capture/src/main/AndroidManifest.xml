@@ -1,10 +1,15 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
 
-    <!-- It HOLDS no permission: whatever the shell's Camera writes for this app, it writes through this app's own grant.
-         WRITE_CONTACTS is declared and never granted at install (the rows install without -g); E9's second
-         display_photo leg grants it with `pm grant` for its span, to record what the guard reads then. -->
+    <!-- Camera / storage: it HOLDS no runtime permission — whatever the shell's Camera writes for this app, it writes
+         through this app's own grant. WRITE_CONTACTS is declared and never granted at install (the rows install without
+         -g); E9's second display_photo leg grants it with `pm grant` for its span, to record what the guard reads then. -->
     <uses-permission android:name="android.permission.WRITE_CONTACTS" />
+
+    <!-- Phase 18 ledger L18-3 (l18_3's SetAlarmActivity): the AlarmClock API handler is guarded by this permission.
+         It is a normal permission, granted at install, so this app can reach AlarmApiActivity the way any app can;
+         it grants nothing over the user's files. -->
+    <uses-permission android:name="com.android.alarm.permission.SET_ALARM" />
 
     <queries>
         <package android:name="app.tileshell" />
@@ -45,9 +50,25 @@
             android:exported="true" />
 
         <!-- Ledger L18-1: another app's controller on the shell's exported music session (a Media3 controller and a legacy
-             MediaBrowser), handing it an item that carries a URI. Started by the row with `am start -n`. No filter. -->
+             MediaBrowser), handing it an item that carries a URI. Started by the row with `am start -n`. No filter.
+             Phase 18 l18_4 leg a (N3) extends it with a `setMediaItems` list + start-index path. -->
         <activity
             android:name=".MediaProbeActivity"
+            android:exported="true" />
+
+        <!-- Phase 18 ledger L18-3 / L18-4 senders, started by the row with `am start -n` (no filter):
+             ClockEditActivity  — a hostile `api_edit` Bundle to the shell's ClockActivity (N1, P3-4)
+             SetAlarmActivity   — SET_ALARM with a foreign Parcelable in EXTRA_DAYS (N4) or a readable MediaStore
+                                  ringtone (N12), to AlarmApiActivity (needs SET_ALARM, declared above)
+             LegacyQueueActivity — a framework-legacy skipToQueueItem with an out-of-range id (P3-1) -->
+        <activity
+            android:name=".ClockEditActivity"
+            android:exported="true" />
+        <activity
+            android:name=".SetAlarmActivity"
+            android:exported="true" />
+        <activity
+            android:name=".LegacyQueueActivity"
             android:exported="true" />
 
         <!-- Its own file provider: the capture's output lives in this app's cache and is reached only by a URI grant. -->

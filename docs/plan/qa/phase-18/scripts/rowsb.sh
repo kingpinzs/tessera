@@ -4,26 +4,21 @@
 # they had there, plus a JVM-only row frame. Sourced AFTER lib.sh and p18.sh; it is stamped into every log (STAMP_FILES).
 # Nothing here touches the host's audio.
 STAMP_FILES="$P18/scripts/p18.sh $P18/scripts/rowsb.sh"
-GATE_APK_MD5=87f6eac1b1ca2a02b263da89713be01f      # the gate candidate (ROWS-BRIEF "The device"); commit 80810722
-GATE_COMMIT=80810722
-# The lead's change of plan (2026-10-06): the adversarial review's fixes make a SECOND gate build; its md5 and commit are
-# in the file below (the first 32-hex word is the APK's md5, the first other 7-40-hex word its commit) and replace the
-# brief's for everything run from then on.
-# 2026-10-06 23:30: a THIRD gate build (the case-only rename fix, EDGE_NAMES' defect) — the pointer below names its file.
-GATE2_FILE=/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/gate-build-3
-if [ -s "$GATE2_FILE" ]; then
-  _g="$(grep -oE '\b[0-9a-f]{32}\b' "$GATE2_FILE" | head -1)"; [ -n "$_g" ] && GATE_APK_MD5="$_g"
-  _g="$(grep -oE '\b[0-9a-f]{7,40}\b' "$GATE2_FILE" | grep -vE '^[0-9a-f]{32}$' | grep -E '[a-f]' | head -1)"; [ -n "$_g" ] && GATE_COMMIT="$_g"
-fi
-# The gate builds BEFORE the current one whose rows still stand (the lead's ruling for build 3: the rows run on build 2
-# stand unless FileOps.rename is their subject). E12 and E20 read a row's latest run when it is stamped with the current
-# build or one of these, and say which. The brief's first build (87f6eac1) is NOT one: build 2 replaced it.
-GATE_PRIOR_FILES="/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/gate-build-2"
-GATE_PRIOR_MD5S=""
-for _f in $GATE_PRIOR_FILES; do
-  [ -s "$_f" ] && GATE_PRIOR_MD5S="$GATE_PRIOR_MD5S $(grep -oE '\b[0-9a-f]{32}\b' "$_f" | head -1)"
-done
-GATE_PRIOR_MD5S="$(echo $GATE_PRIOR_MD5S)"
+# The gate build: GATE-BUILD/gate-build.tsv, a tracked file (2026-10-20; until then the pointer lived in a finished
+# session's scratchpad and died with it). Its `current` row names the APK's md5 and the commit it was built from; its
+# `prior` rows the earlier gate builds whose rows still stand (E12 and E20 read a row's latest run when it is stamped
+# with the current build or one of these, and say which). The brief's first build (87f6eac1) is NOT one: build 2
+# replaced it. A missing or malformed pointer leaves both empty, and every gate assertion fails.
+GATE_TSV="$P18/GATE-BUILD/gate-build.tsv"
+GATE_APK_MD5="$(awk -F'\t' '$1 == "current" {print $2; exit}' "$GATE_TSV" 2>/dev/null)"
+GATE_COMMIT="$(awk -F'\t' '$1 == "current" {print $3; exit}' "$GATE_TSV" 2>/dev/null)"
+GATE_PRIOR_MD5S="$(awk -F'\t' '$1 == "prior" {print $2}' "$GATE_TSV" 2>/dev/null | xargs)"
+# The JVM frame compiles the gate commit's source in a worktree of its own (scripts/src_worktree.sh), never this
+# worktree's app/: since 2026-10-20 (phase 18's resume, step 0) HEAD carries later phases' code. jvm_gate (p18.sh)
+# runs gradle in $JVM_REPO.
+GATE_SRC="$REPO/.claude/worktrees/gate-src-$GATE_COMMIT"
+JVM_REPO="$GATE_SRC"
+gate_src_ready() { bash "$HERE/src_worktree.sh" "$GATE_SRC" "$GATE_COMMIT" >/dev/null; }
 # "<current id> <prior id>…" — the 16-character ids the logs are stamped with, the current build first.
 gate_ids() { local m out="${GATE_APK_MD5:0:16}"; for m in $GATE_PRIOR_MD5S; do [ "$m" != "$GATE_APK_MD5" ] && out="$out ${m:0:16}"; done; echo "$out"; }
 QF=/storage/emulated/0/QA-Files                     # the real path the app logs (BUILD-NOTES pure layer 2)
@@ -35,9 +30,10 @@ BINP=/sdcard/.Tessera/bin
 # lib.sh's row_begin takes the device lock, wakes the device and reads the installed APK — all adb. A row that only
 # runs gradle must not touch a device another driver is using, so its frame runs NO adb command: the log is stamped
 # with the driver / harness / include blobs, the gate APK FILE's md5, and the proof that the tests compile from the
-# gate build's source (app/ at HEAD equals app/ at the gate commit, and app/ has no uncommitted change).
+# gate build's source (the JVM source worktree $GATE_SRC is at the gate commit, and its app/ has no uncommitted change).
 jvm_row_begin() { # id description
   ROW="$1"; ROW_DIR="$QA/$ROW"; mkdir -p "$ROW_DIR"; LOG="$ROW_DIR/$ROW.txt"; PASS=0; FAIL=0; RECORDED=0; ROW_MARK=""
+  gate_src_ready
   {
     echo "=============================================================================="
     echo "ROW $ROW — ${2:-}"
@@ -47,13 +43,13 @@ jvm_row_begin() { # id description
     for _f in ${STAMP_FILES:-}; do [ -f "$_f" ] && echo "include       $(basename "$_f") blob $(git -C "$REPO" hash-object "$_f")"; done
     echo "apk built     md5 $(md5sum "$APK" 2>/dev/null | cut -d' ' -f1) $(stat -c%s "$APK" 2>/dev/null) bytes"
     echo "apk installed (not read: a JVM row runs no device command)"
-    echo "source        HEAD $(git -C "$REPO" rev-parse --short=8 HEAD); app/ against $GATE_COMMIT: $(git -C "$REPO" diff --stat "$GATE_COMMIT" HEAD -- app | tail -1 | xargs)[end]; uncommitted under app/: $(git -C "$REPO" status --porcelain -- app | grep -c .)"
+    echo "source        $GATE_SRC: HEAD $(git -C "$GATE_SRC" rev-parse --short=9 HEAD 2>/dev/null); uncommitted under app/: $(git -C "$GATE_SRC" status --porcelain -- app 2>/dev/null | grep -c .) (gate commit $GATE_COMMIT; this worktree's HEAD $(git -C "$REPO" rev-parse --short=9 HEAD))"
     echo "=============================================================================="
   } > "$LOG"
   echo "── $ROW ${2:-}"
   assert_eq "the APK file is the gate candidate (md5)" "$GATE_APK_MD5" "$(md5sum "$APK" | cut -d' ' -f1)"
-  assert_eq "app/ at HEAD is app/ at the gate commit $GATE_COMMIT (git diff --quiet)" "0" "$(git -C "$REPO" diff --quiet "$GATE_COMMIT" HEAD -- app; echo $?)"
-  assert_eq "app/ has no uncommitted change (git status --porcelain -- app)" "0" "$(git -C "$REPO" status --porcelain -- app | grep -c .)"
+  assert_eq "the JVM source worktree is at the gate commit $GATE_COMMIT (src_worktree.sh)" "$(git -C "$REPO" rev-parse "$GATE_COMMIT^{commit}" 2>/dev/null)" "$(git -C "$GATE_SRC" rev-parse HEAD 2>/dev/null)"
+  assert_eq "its app/ has no uncommitted change (git status --porcelain -- app)" "0" "$(git -C "$GATE_SRC" status --porcelain -- app 2>/dev/null | grep -c .)"
 }
 # row_end's ring_save returns before any adb when ROW_MARK is empty (lib.sh ring_save); its message is dropped.
 jvm_row_end() { ROW_MARK=""; row_end 2>/dev/null; }
@@ -97,7 +93,10 @@ hold() { # dump id — a 900-ms press on the node's centre
 epx() { python3 -c "import sys; print(' '.join('%.1f' % (int(v)/3) for v in sys.argv[1:]))" "$@"; }
 files_open() { adb shell am start -W -n "$FILES_ACTIVITY" "$@" >/dev/null 2>&1; sleep 1.5; }
 files_at() { files_open --es path "$1"; }
-crash() { adb logcat -d -s AndroidRuntime:E | grep -c "app.tileshell"; }
+# A crash of the SHELL: AndroidRuntime's "Process: app.tileshell[:<name>], PID" line. Not a bare "app.tileshell": the test
+# apps' packages start with it (app.tileshell.testclient.qacapture, app.tileshell.qa.imefixture), so a probe's own crash
+# counted as the shell's (L18_4 b, 2026-10-20: "crash 1" with the shell's pid unchanged).
+crash() { adb logcat -d -s AndroidRuntime:E | tr -d '\r' | grep -cE 'Process: app\.tileshell(:[A-Za-z0-9_.]+)?, PID'; }
 anr() { adb logcat -d | grep -c 'ANR in app.tileshell'; }
 px() { python3 - "$1" "$2" "$3" <<'PY'
 import sys
@@ -218,7 +217,11 @@ else:
 PY
 }
 # Cancel the running operation from its notification (H5: Cancel lives only there): Home, the shade, expand, Cancel.
-notif_cancel() { # dump-prefix
+# With a MARK (the operation's): the tap is checked — when no end line (done | cancelled | failed) follows within 3 s, the
+# shade is opened and Cancel tapped again, up to 3 taps in all, each repeat noted. 2026-10-20, E4 on 23fe18a8: one tap on
+# the found CANCEL [263 1175] of a cross-volume move registered nothing (the progress notification is re-posted every
+# 0.5 s) and the move ran to "done"; the copy's cancel a minute earlier, same place, worked.
+notif_cancel() { # dump-prefix [mark]
   local xy
   local i
   adb shell input keyevent KEYCODE_HOME; sleep 1; adb shell cmd statusbar expand-notifications; sleep 2; gdump "$ROW_DIR/$1-shade0.xml"
@@ -237,6 +240,13 @@ notif_cancel() { # dump-prefix
   # shellcheck disable=SC2086
   [ -n "$xy" ] && adb shell input tap $xy
   sleep 2; adb shell cmd statusbar collapse; sleep 1
+  if [ -n "${2:-}" ] && [ -n "$xy" ]; then
+    for i in 2 3; do
+      grep -qE '\[files\] (zip extract|zip create|copy|move) .*(done|cancelled|failed)' <<< "$(ring_since "$2")" && break
+      note "notif_cancel: no end line 3 s after the tap — Cancel tapped again (tap $i)"
+      notif_cancel "$1-tap$i" >/dev/null || break
+    done
+  fi
   [ -n "$xy" ]
 }
 # The centre of a chooser target by its label (the label sits under its icon): "x y".
@@ -308,7 +318,10 @@ search_for() { # term dump-name
   if [ "$(X "$2" files_sort)" != "Sort by: Relevance" ]; then adb shell input keyevent KEYCODE_ENTER; sleep 2; D "$2"; fi
   # The keyboard covers the app bar while the box has it: a tap at the bar's dumped bounds would land on a key (E4b's
   # run 1). Back puts the keyboard away — only when it is showing, since Back with no keyboard leaves search.
-  local ime; ime="$(adb shell dumpsys input_method | tr -d '\r' | grep -c 'mInputShown=true')"     # counted, not grep -q: pipefail
+  # "Showing" = the InputMethod window has a surface (dumpsys window). `mInputShown=true` (dumpsys input_method) is not
+  # enough: with the AVD's hardware keyboard and show_ime_with_hard_keyboard=0 it reads true while the IME window is
+  # GONE with no surface, nothing covers the bar, and the Back closed the search (E4b, 2026-10-20, two runs).
+  local ime; ime="$(adb shell dumpsys window windows | tr -d '\r' | awk '/Window #[0-9]+ Window\{.* InputMethod\}:/ { f = 1; next } /Window #[0-9]+ Window\{/ { f = 0 } f && /mHasSurface=true/ { n++ } END { print n + 0 }')"
   if [ "${ime:-0}" != 0 ]; then adb shell input keyevent KEYCODE_BACK; sleep 1; D "$2"; fi
 }
 

@@ -8,6 +8,7 @@
 . "$(dirname "$0")/lib.sh"
 . "$(dirname "$0")/p18.sh"
 
+keep_earlier_run PROVIDER_SMOKE
 row_begin PROVIDER_SMOKE "a provider open still works after the descriptor check (review fix M6)"
 baseline_start
 files_up

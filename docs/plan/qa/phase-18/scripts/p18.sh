@@ -25,7 +25,20 @@
 #   q, top_activity, gdump, absent_in, rings_save, c6          qa/phase-17/scripts/p17.sh (gdump's scratch name is p18_)
 #   media_scan, media_ids, _media_dest, media_up, media_down   qa/phase-17/scripts/p17.sh:150-213, VERBATIM — the only
 #                                                              change is GEN, which is this phase's gen/media
-export ANDROID_SERIAL=emulator-5554
+# The device is the AVD tileshell_fhd, found by its NAME (2026-10-20, Q-18-11 (a)): another session's emulator may hold
+# emulator-5554, so the serial is whichever running emulator's console reads `tileshell_fhd`. With none, ANDROID_SERIAL
+# names no device at all, so every adb step fails loudly instead of reaching another emulator; a JVM-only row, which
+# runs no adb command, still runs.
+P18_AVD=tileshell_fhd
+p18_serial() {
+  local s
+  for s in $(adb devices 2>/dev/null | awk 'NR>1 && $1 ~ /^emulator-/ && $2 == "device" {print $1}'); do
+    [ "$(adb -s "$s" emu avd name 2>/dev/null | head -1 | tr -d '\r')" = "$P18_AVD" ] && { echo "$s"; return 0; }
+  done
+  return 1
+}
+ANDROID_SERIAL="$(p18_serial)" || { ANDROID_SERIAL="no-$P18_AVD-running"; echo "p18.sh: no running emulator reads $P18_AVD; adb steps will fail" >&2; }
+export ANDROID_SERIAL
 
 P18="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 P01S="$(cd "$P18/../phase-01/scripts" && pwd)"
@@ -39,6 +52,14 @@ PREFS_EDIT="$P01S/prefs_edit.py"
 MAKE_ZIPS="$P18/scripts/make_zips.py"
 STAMP_FILES="$P18/scripts/p18.sh"
 DRV_RUNNER="app.tileshell.qa.imefixture.test/androidx.test.runner.AndroidJUnitRunner"
+# The APK every row installs, provisions and stamps (2026-10-20): the kept gate build that GATE-BUILD/gate-build.tsv's
+# `current` row names, GATE-BUILD/app-debug-<md5's first 8>.apk — never app/build's, which any gradle run overwrites.
+# Exported, so provision.sh (a child bash with its own lib.sh) installs the same file. TILESHELL_APK still overrides.
+if [ -z "${TILESHELL_APK:-}" ]; then
+  _gate_md5="$(awk -F'\t' '$1 == "current" {print $2; exit}' "$P18/GATE-BUILD/gate-build.tsv" 2>/dev/null)"
+  [ -n "$_gate_md5" ] && APK="$P18/GATE-BUILD/app-debug-${_gate_md5:0:8}.apk"
+fi
+export TILESHELL_APK="$APK"
 
 FILES_ACTIVITY="app.tileshell/.files.FilesActivity"
 FILES_TILE="tile:app:app.tileshell/app.tileshell.files.FilesActivity:0"
@@ -97,7 +118,9 @@ gdump() { # out.xml
 
 # An absence check that cannot pass on an unreadable ring: the slice must hold a ring line (a `wall=` stamp) first.
 absent_in() { # name needle slice
-  if printf '%s\n' "$3" | grep -q 'wall='; then
+  # A here-string, not printf | grep -q: under pipefail grep -q's early exit SIGPIPEs printf on a slice over 8 KB and
+  # the test fails at random (2026-10-20: 33 of 300 on a 9 KB slice; L18_3's baseline slice of 10 KB failed once).
+  if grep -q 'wall=' <<< "$3"; then
     assert_absent "$1" "$2" "$3"
   else
     _verdict FAIL "$1" "the ring slice is empty or unreadable, so the absence proves nothing"
@@ -118,6 +141,38 @@ c6() {
   sleep 1
   adb shell input keyevent KEYCODE_HOME
   sleep 4
+}
+
+# lib.sh's ensure_start, unchanged in what it decides; when it fails, what was on screen is KEPT (its one dump file is
+# overwritten by the next call): ensure_start-fail-<n>.xml / .png in the row folder and a note naming the top activity,
+# the focused window and Home's resolved activity. (2026-10-20: L18_3's re-run failed "Start alone" once after c6 with
+# nothing left to say why.)
+# Before it decides, two things lib.sh's own steps cannot do (found 2026-10-20, R2_EXP's first run: both failures came
+# right after a force-stop, the kept dump was the Files page of a minute before while Start was the top activity):
+#   * /sdcard/qa.xml is removed first: `uiautomator dump` exits 0 when it cannot get a hierarchy, and dump_ui then read the
+#     PREVIOUS dump's file — a stale screen can fail the check, or pass it;
+#   * after Home, up to 10 s for Start's window to hold the focus: Start cold-starts after a force-stop (process start to
+#     "StartActivity created" took 2 s in L18_3's ring) and lib.sh dumps 1 s after its Home.
+# A Home that resolves elsewhere (the chooser) never takes that focus: the wait runs out and lib.sh's check fails as before.
+eval "_lib_ensure_start() $(declare -f ensure_start | tail -n +2)"
+ensure_start() {
+  local w
+  adb shell rm -f /sdcard/qa.xml >/dev/null 2>&1
+  adb shell input keyevent KEYCODE_HOME >/dev/null 2>&1
+  for w in $(seq 1 20); do
+    # The dump read whole first: a pipe into grep -m1 under pipefail ends in tr's / adb's SIGPIPE, and the loop never broke.
+    grep -m1 'mCurrentFocus=' <<< "$(adb shell dumpsys window | tr -d '\r')" | grep -q 'app.tileshell/app.tileshell.StartActivity' && break
+    sleep 0.5
+  done
+  _lib_ensure_start "$@" && return 0
+  local n=1
+  if [ -n "${ROW_DIR:-}" ]; then
+    while [ -e "$ROW_DIR/ensure_start-fail-$n.xml" ]; do n=$((n + 1)); done
+    cp "$ROW_DIR/.ensure_start.xml" "$ROW_DIR/ensure_start-fail-$n.xml" 2>/dev/null
+    screencap "$ROW_DIR/ensure_start-fail-$n.png" 2>/dev/null
+    [ -n "${LOG:-}" ] && note "ensure_start failed ($n): kept ensure_start-fail-$n.xml/.png; top=$(top_activity) focus=[$(adb shell dumpsys window | tr -d '\r' | grep -m1 mCurrentFocus | xargs)] home=[$(q 'cmd package resolve-activity --brief -a android.intent.action.MAIN -c android.intent.category.HOME' | tail -1)] dump=[$(head -c 60 "$ROW_DIR/.ensure_start.xml" 2>/dev/null | tr -d '\n')]"
+  fi
+  return 1
 }
 
 # ---- media fixtures: p17.sh:150-213 verbatim (media_scan … media_down). GEN above is this phase's.
@@ -225,7 +280,7 @@ baseline_start() {
   slice="$(ring_since "$mark")"
   printf '%s\n' "$slice" > "$ROW_DIR/baseline-slice.txt"
   # Not a bare absence: the slice must be a readable ring (wall= stamps) that holds the seed's own lines.
-  if printf '%s\n' "$slice" | grep -q 'wall='; then
+  if grep -q 'wall=' <<< "$slice"; then   # a here-string: see absent_in (printf | grep -q under pipefail races)
     assert_eq "after the restore: zero assignSlotOnce … -> assigned lines" "0" "$(printf '%s\n' "$slice" | grep -cE 'assignSlotOnce .* -> assigned')"
     assert_ne "…and the slice does hold the seed's lines (assignSlotOnce … already run / kept)" "0" "$(printf '%s\n' "$slice" | grep -c 'assignSlotOnce')"
   else
@@ -692,6 +747,9 @@ files_down() {
     grep -qxF "$extra" "$ROW_DIR/snap-sdcard-before.txt" || adb shell rm -rf "$extra"
   done
   if _fx_has media && [ -n "$MEDIA_MARK" ]; then media_down; else media_scan; fi
+  # media_up's `mkdir -p` makes DCIM/Camera on a device that had none (the AVD of 2026-10-20), and media_down (p17.sh's,
+  # verbatim) removes only Pictures/QA-Album: the folder goes again when the snapshot did not hold it (rmdir: only if empty).
+  grep -qxF /sdcard/DCIM/Camera "$ROW_DIR/snap-sdcard-before.txt" || { adb shell rmdir /sdcard/DCIM/Camera >/dev/null 2>&1; media_scan; }
   for i in $(seq 1 30); do
     _snap_sdcard > "$ROW_DIR/snap-sdcard-after.txt"
     _snap_files > "$ROW_DIR/snap-files-after.txt"
@@ -747,9 +805,12 @@ for raw in sys.stdin:
 # 0 failures / errors / skipped over at least one test, and hold every named case passed (precedent
 # qa/phase-11/scripts/e14.sh:40-42). Example: jvm_gate '*FileShareGuard*' '*FileShareGuard*' refusesTheAppsOwnFile …
 jvm_gate() { # tests-pattern report-glob case…
-  local pattern="$1" glob="$2" dir="$REPO/app/build/test-results/testDebugUnitTest" out f
+  # JVM_REPO: the worktree gradle runs in — rowsb.sh's gate-commit checkout when it is sourced, else this worktree.
+  local pattern="$1" glob="$2" jr="${JVM_REPO:-$REPO}" dir out f
+  dir="$jr/app/build/test-results/testDebugUnitTest"
   shift 2
-  ( cd "$REPO" && ./gradlew :app:cleanTestDebugUnitTest :app:testDebugUnitTest --offline --tests "$pattern" ) > "$ROW_DIR/gradle.out" 2>&1
+  if declare -F gate_src_ready >/dev/null; then gate_src_ready; fi
+  ( cd "$jr" && ./gradlew :app:cleanTestDebugUnitTest :app:testDebugUnitTest --offline --tests "$pattern" ) > "$ROW_DIR/gradle.out" 2>&1
   echo $? > "$ROW_DIR/gradle.rc"
   assert_eq "JVM gate $pattern: gradle's exit code (gradle.rc)" "0" "$(cat "$ROW_DIR/gradle.rc")"
   mkdir -p "$ROW_DIR/test-reports"

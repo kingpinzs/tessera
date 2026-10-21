@@ -655,7 +655,7 @@ class FilesState(context: Context, val actions: FilesActions) {
             withContext(Dispatchers.IO) {
                 FolderReader.search(
                     File(at.path), term, hidden,
-                    skip = { FilePaths.inShellDir(it.path, volume, FilesStores::canonical) },
+                    skip = FilePaths.walkSkip(volume),
                     stopped = { stop.get() },
                     onFolder = { folders.set(it) },
                     entriesPerSecond = eps,

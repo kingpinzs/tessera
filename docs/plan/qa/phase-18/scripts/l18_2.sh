@@ -102,7 +102,9 @@ adb shell input keyevent KEYCODE_HOME; sleep 1
 
 # ------------------------------------------------------------------------------------------------ the exported editor, directly
 # ClockActivity is exported and takes the handler's bundle; `am start` cannot build a Bundle extra, so this leg is the
-# JVM gate's (AlarmRingtoneRulesTest "what the editor is handed from the API …", AlarmSoundWiringScanTest) — recorded.
+# JVM gate's (AlarmRingtoneRulesTest's two L18-3 editor cases, AlarmSoundWiringScanTest) — recorded. (2026-10-20: the
+# fix round's ae78f232d replaced "what the editor is handed from the API is weighed as for a caller nobody can be asked
+# about", which pinned the editor / handler disagreement L18-3 removed — INDEX Change Log (9).)
 record "the exported editor handed a forged bundle directly" "not drivable from adb (am start carries no Bundle extra): held by the JVM gate below"
 
 # ------------------------------------------------------------------------------------------------ positive controls
@@ -166,6 +168,7 @@ jvm_gate 'app.tileshell.clock.Alarm*' 'app.tileshell.clock.Alarm*' \
   "the ring never opens a file URI, a path, a web address or anything but a content URI" \
   "the ring never opens one of the shell's own providers, however the authority is written" \
   "every sound the shell's own editor offers still rings" \
-  "what the editor is handed from the API is weighed as for a caller nobody can be asked about" \
+  "L18-3 a ringtone from the API is the same sound with SKIP_UI and in the editor without it" \
+  "L18-3 the editor's answer is the handler's - a row of the user's volume the handler kept, every other check made again" \
   "L18-2 a ringtone from the API is the rule's sound, and the ring asks before it opens a stored URI"
 row_end

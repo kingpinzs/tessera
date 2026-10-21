@@ -44,6 +44,6 @@ for c in FileOpsTest FileOpsBinTest FileOpsJournalTest FileOpsRunTest FileOpsZip
 done
 # The zip guards ran on make_zips.py's fixtures: the class runs the script itself and compares its md5 lines.
 assert_contains "FileOpsZipTest makes its fixtures with scripts/make_zips.py (the class's own source)" "make_zips.py" \
-  "$(grep -c 'docs/plan/qa/phase-18/scripts/make_zips.py' "$REPO/app/src/test/kotlin/app/tileshell/files/FileOpsZipTest.kt") make_zips.py reference(s)"
+  "$(grep -c 'docs/plan/qa/phase-18/scripts/make_zips.py' "${JVM_REPO:-$REPO}/app/src/test/kotlin/app/tileshell/files/FileOpsZipTest.kt") make_zips.py reference(s)"
 
 jvm_row_end

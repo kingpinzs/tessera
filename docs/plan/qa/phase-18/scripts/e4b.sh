@@ -30,7 +30,7 @@ HERE="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 . "$HERE/lib.sh"
 . "$HERE/p18.sh"
 . "$HERE/rowsb.sh"
-SCRATCH=/tmp/claude-1000/-home-jeremyking/340515de-6745-4b8c-a7bc-95d3c74d1c3e/scratchpad/rows-b
+SCRATCH="$FXGEN/rows-b"        # provision.sh's TMPDIR (git-ignored; until 2026-10-20 a finished session's scratchpad)
 mkdir -p "$SCRATCH"
 PRIMARY=/storage/emulated/0
 CAM=$PRIMARY/DCIM/Camera
@@ -261,7 +261,7 @@ KS="$(ring_since "$M")"
 assert_eq "K: a tap on a bin row opens nothing — Files stays on top" "$FILES_ACTIVITY" "$(top_activity)"
 D k-tapped
 assert_eq "K: …still the bin page" "Recycle Bin" "$(X k-tapped files_crumb:0)"
-if printf '%s\n' "$KS" | grep -q 'wall='; then assert_absent "K: …and no [files] recent add" "recent add" "$KS"
+if grep -q 'wall=' <<< "$KS"; then assert_absent "K: …and no [files] recent add" "recent add" "$KS"
 else assert_eq "K: …and no [files] recent add (the slice holds no line at all: nothing was logged)" "" "$(printf '%s' "$KS" | grep -F 'recent add')"; fi
 assert_eq "K: the private Recent store is unchanged by the tap" "$R0" "$(recent_json)"
 files_open --es page recent; D k-recent
@@ -282,7 +282,10 @@ else
   _verdict FAIL "L: fill_volume 1048576" "its precondition failed (above); the leg was not run"
 fi
 unfill_volume
-assert_eq "L: unfill_volume — fill.bin is gone" "" "$(lsdev /sdcard/fill.bin)"
+# Read from the LISTING of /sdcard, not a path lookup: unfill_volume removes the file as root below FUSE
+# (/data/media/0), which does not invalidate FUSE's cached entry for that name, so `ls -d /sdcard/fill.bin` can still
+# answer from the cache after the file is gone (2026-10-20 run: `ls /sdcard` and `head` said gone, `ls -d` / `stat` did not).
+assert_eq "L: unfill_volume — fill.bin is gone (ls -a /sdcard)" "" "$(q 'ls -a /sdcard' | grep -Fx fill.bin)"
 record "L: free on /sdcard after unfill_volume" "$(q 'df -k /sdcard' | awk 'NR==2 { print $4 " KB" }')"
 assert_eq "L: awake after the adb root / unroot of the fill (wake_device)" "Awake" "$(wake_device)"
 

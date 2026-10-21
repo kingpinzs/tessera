@@ -76,6 +76,11 @@ data class ClockOpen(
     val alarm: AlarmDraft? = null,
     val timer: TimerDraft? = null,
     val lines: List<String> = emptyList(),
+    /**
+     * For a NEW intent: whether it may become the activity's own intent — the one a relaunch routes again, against the
+     * app that FIRST launched the activity (ledger L18-3, the third pass's P3-4). See [ClockIntents.open].
+     */
+    val keep: Boolean = true,
 )
 
 /**
@@ -87,8 +92,19 @@ data class ClockOpen(
  *  - `api_edit`, the bundle [AlarmApiActivity] hands over for a request without SKIP_UI, opens an editor FILLED IN. It
  *    is honoured only when the uid that sent this very intent is the shell's own — for anyone else it is not even
  *    read — and, whoever sent it, each field must pass the checks the API handler applies ([AlarmApiRules]: hour
- *    0..23, minute 0..59, days 1..7, the message's length and control characters, a timer length within the ceiling).
- *    A bundle with one bad field is ignored whole. Nothing is stored until the user saves.
+ *    0..23, minute 0..59, days 1..7, the message's length and control characters, a timer length within the ceiling)
+ *    and its sound is weighed by the API's own ringtone rule (`AlarmRingtoneRules.fromApi`, the caller's question
+ *    answered by the handler that asked it). A bundle with one bad field is ignored whole. Nothing is stored until the
+ *    user saves.
+ *
+ * A NEW intent (the activity is singleTask) is weighed against its own sender, and becomes the activity's own intent
+ * only when [ClockOpen.keep] says so (ledger L18-3, the third pass's P3-4): a relaunch — a configuration change the
+ * manifest does not handle, such as the language or bold text — routes the activity's intent again, and the platform
+ * then names only the app that FIRST launched the activity. So a new intent is kept only when that cannot honour a bundle
+ * its own sender could not give: it carries no edit bundle, or the shell itself sent it. Any other is not kept, and the
+ * activity keeps the intent it had — its first launcher's, or a later one this rule kept — which a relaunch weighs
+ * against that first launcher as before (a bundle the shell handed over is honoured again only when the shell also
+ * launched Clock; never a stranger's).
  *
  * Every extra is read through [SafeExtras], so no intent can throw here. Pure: `ClockIntentsTest`.
  */
@@ -109,9 +125,26 @@ object ClockIntents {
 
     const val WHY_NOT_SHELL = "not the shell"
 
+    /** The line a new intent that is not kept writes (P3-4): a relaunch will not route it. */
+    const val NOT_KEPT = "new intent not kept for a relaunch: its edit bundle is not the shell's"
+
     private const val MAX_ID = 128
     private const val MAX_URI = 2048
     private val TIMER_ID = Regex("[A-Za-z0-9_-]{1,40}")
+
+    /** `Build.VERSION_CODES.VANILLA_ICE_CREAM`: the first API that names the sender of a NEW intent to a running activity. */
+    const val API_NAMES_NEW_INTENT_SENDER = 35
+
+    /**
+     * Ledger L18-6 (the third pass's P3-7): whether [AlarmApiActivity] must start Clock AFRESH — clearing Clock's task
+     * (FLAG_ACTIVITY_CLEAR_TASK) — to hand over an editor ([edit]). Clock is singleTask, so with its task alive a start
+     * is a NEW intent, and below [API_NAMES_NEW_INTENT_SENDER] the platform does not name a new intent's sender: the
+     * shell's own bundle would be weighed as nobody's and no editor would open. A fresh start is a LAUNCH, whose launcher
+     * the platform does name — the handler, the shell — so [open] honours it, and a relaunch routes it against that same
+     * launcher (P3-4). From API 35 a new intent names its sender, so nothing changes there; a request with no editor (a
+     * tab to show) needs no sender and keeps Clock's task as it is.
+     */
+    fun handOffFresh(apiLevel: Int, edit: Boolean): Boolean = edit && apiLevel < API_NAMES_NEW_INTENT_SENDER
 
     /** Who started the activity, asked of the one platform port; [NO_CALLER] when the platform names nobody or throws. */
     fun launchCaller(access: UriAccessPort): Int = try { UriAccessRules.starterUid(access) ?: NO_CALLER } catch (e: Throwable) { NO_CALLER }
@@ -144,8 +177,9 @@ object ClockIntents {
         var api = "none"
         // The caller first: for anyone but the shell the bundle is not even unpacked.
         val sent = try { extras.value(EXTRA_API_EDIT) != null } catch (e: Throwable) { true }
+        val fromShell = myUid >= 0 && callerUid == myUid
         if (sent) {
-            if (myUid < 0 || callerUid != myUid) {
+            if (!fromShell) {
                 api = "ignored: $WHY_NOT_SHELL"
             } else {
                 when (val edit = edit(safe.nested(EXTRA_API_EDIT))) {
@@ -158,7 +192,7 @@ object ClockIntents {
         safe.refused.forEach { lines += it }
         if (api.startsWith("ignored")) lines += "api edit $api"
         lines += "open page=${page?.let { token(it) } ?: "none"} tile=${tile?.let { token(it) } ?: "none"} api=$api -> tab ${tab?.id ?: "unchanged"}"
-        return ClockOpen(tab, focused, alarm, timer, lines)
+        return ClockOpen(tab, focused, alarm, timer, lines, keep = !sent || fromShell)
     }
 
     sealed interface Edit {
@@ -193,9 +227,10 @@ object ClockIntents {
                 if (days.any { !AlarmApiRules.dayOk(it) }) return Edit.Ignored("days out of range")
                 val sound = when (soundKind) {
                     AlarmSound.Kind.VIBRATE.name -> AlarmSound(AlarmSound.Kind.VIBRATE)
-                    // L18-2: the sound the bundle names is weighed again, as for a caller nobody can be asked about: a
-                    // sound every app can read, else the default.
-                    AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, null).sound
+                    // L18-2 / L18-3: the sound the bundle names is weighed again by the API's own rule — every check made
+                    // again, the caller's question answered by the handler that asked it — so the editor opens with the
+                    // sound SKIP_UI would have stored.
+                    AlarmSound.Kind.TONE.name -> AlarmRingtoneRules.fromApi(soundUri, AlarmRingtoneRules.Caller.AskedByHandler).sound
                     else -> AlarmSound.DEFAULT
                 }
                 val base = AlarmDraft.new()

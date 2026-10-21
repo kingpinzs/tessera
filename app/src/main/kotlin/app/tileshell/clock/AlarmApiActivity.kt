@@ -1,6 +1,7 @@
 package app.tileshell.clock
 
 import android.content.Intent
+import android.os.Build
 import android.os.Bundle
 import android.provider.AlarmClock
 import android.text.format.DateFormat
@@ -38,13 +39,13 @@ class AlarmApiActivity : ComponentActivity() {
         )
         extras.refused.forEach { Diagnostics.add("alarms", "api $it") }
         val request = AlarmApiRules.unlessUnreadable(parsed, extras.refused.size)
-        // L18-2: a ringtone the caller could not have read itself is not kept; the line names why, never the caller's text.
-        val refusedSound = when (request) {
-            is Request.CreateAlarm -> request.fields.soundRefused
-            is Request.EditAlarm -> request.fields.soundRefused
+        // L18-2: a ringtone the caller could not have read itself is not kept; the rule's line names why, never the caller's text.
+        val soundLine = when (request) {
+            is Request.CreateAlarm -> request.fields.soundLine
+            is Request.EditAlarm -> request.fields.soundLine
             else -> null
         }
-        refusedSound?.let { Diagnostics.add("alarms", "api ringtone not kept ($it) -> default sound") }
+        soundLine?.let { Diagnostics.add("alarms", it) }
         val store = ClockStore.get(this)
         val result = when (request) {
             is Request.CreateAlarm -> {
@@ -99,7 +100,9 @@ class AlarmApiActivity : ComponentActivity() {
             Intent(this, ClockActivity::class.java)
                 .putExtra(ClockActivity.EXTRA_PAGE, tab.id)
                 .apply { edit?.let { putExtra(ClockActivity.EXTRA_API_EDIT, it) } }
-                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK),
+                .addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
+                // L18-6: on API 34 a running Clock cannot tell who sent a new intent; the editor goes as a fresh launch.
+                .apply { if (ClockIntents.handOffFresh(Build.VERSION.SDK_INT, edit != null)) addFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK) },
         )
     }
 }

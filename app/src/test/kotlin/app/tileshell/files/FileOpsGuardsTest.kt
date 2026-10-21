@@ -53,6 +53,20 @@ class FileOpsGuardsTest {
     }
 
     @Test
+    fun `rename - a link on shared storage that leads outside every volume is refused, though its new name would be inside`() {
+        // Rule 1 asks the SOURCE (the GATE review's G3): the link resolves outside; the name it would take does not.
+        val secret = File(bed.privateDir, "secret.txt").apply { writeText("private") }
+        val key = File(bed.dir("QA-Files"), "key")
+        Files.createSymbolicLink(key.toPath(), secret.toPath())
+        assertEquals(OpResult.Failed("outside shared storage"), bed.ops.rename(key, "renamed"))
+        assertEquals(listOf("key"), bed.names(key.folder))
+        assertTrue(Files.isSymbolicLink(key.toPath()))
+        assertEquals("private", secret.readText())
+        assertEquals("rename ${key.path} -> renamed: failed outside shared storage", bed.lines.last())
+        assertTrue(bed.scanned.isEmpty())
+    }
+
+    @Test
     fun `new folder - a parent outside every volume is refused, by its own path and through a link`() {
         assertEquals(OpResult.Failed("outside shared storage"), bed.ops.newFolder(bed.privateDir, "planted"))
         val door = File(bed.dir("QA-Files"), "door")
@@ -106,6 +120,21 @@ class FileOpsGuardsTest {
 
         assertEquals(0, bed.newJournal().sweep(bed.mounted))
         assertEquals("a binned file on FAT", twin.readText())
+    }
+
+    @Test
+    fun `the sweep never removes a path written under the bin, even where a link in the bin leads it elsewhere`() {
+        // The bin check's "as written" half (the GATE review's G2): as it resolves, the path is in Download, not the bin.
+        bed.ops.binDelete(bed.file("QA-Files/mine.txt"))
+        val bin = RecycleBin.binDir(bed.primary)
+        val kept = bed.file("Download/.1000-0-x.abc.part", "the user's".toByteArray())
+        Files.createSymbolicLink(File(bin, "sub").toPath(), kept.folder.toPath())
+        val written = File(bin, "sub/${kept.name}")
+        bed.newJournal().put("op1", written.path, bed.primary.uuid)
+
+        assertEquals(0, bed.newJournal().sweep(bed.mounted))
+        assertEquals("the user's", kept.readText())
+        assertTrue(bed.newJournal().entries().isEmpty())
     }
 
     // ---- the zip entry-name guard's second half
