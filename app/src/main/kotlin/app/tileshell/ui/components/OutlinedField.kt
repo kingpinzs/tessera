@@ -15,6 +15,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.password
 import androidx.compose.ui.semantics.semantics
@@ -25,6 +26,8 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
+import app.tileshell.net.AndroidClip
+import app.tileshell.net.afterSecretEdit
 import app.tileshell.ui.tokens.ShellType
 
 /**
@@ -70,9 +73,16 @@ fun OutlinedField(
      * Phase 17: a field that holds a credential (a password, a pasted token). The characters are drawn as dots, the
      * keyboard is asked for its password form (no suggestions, nothing learnt), and accessibility — so a UI dump too —
      * reads the dots, never the value.
+     *
+     * Phase 17, D2 (a): a paste into it is cleared from the clipboard ([app.tileshell.net.PastedCredential]: a paste
+     * only, never typing, and only while the clipboard still holds what was pasted), and the page it is on calls
+     * [app.tileshell.net.SecurePage] first. Only a secret field ever reads the clipboard.
      */
     secret: Boolean = false,
+    /** The diagnostics tag a secret field's clipboard lines are written under: its page's own (`video`, `music`). */
+    linesTag: String = "shell",
 ) {
+    val clip = if (secret) AndroidClip(LocalContext.current) else null
     Box(
         modifier
             .height(height)
@@ -93,6 +103,9 @@ fun OutlinedField(
             onValueChange = { typed ->
                 val kept = if (singleLine) typed.replace("\n", "") else typed
                 onValueChange(kept.take(maxLength))
+                // The RAW edit is weighed, before the line feed is dropped: a token copied with its line break is still
+                // the clipboard's text put in.
+                if (clip != null) afterSecretEdit(linesTag, value, typed, clip)
             },
             modifier = Modifier.fillMaxSize().padding(horizontal = OutlinedFieldMetrics.TEXT_INSET).testTag(tag)
                 .then(if (secret) Modifier.semantics { password() } else Modifier),
