@@ -54,13 +54,37 @@ class ServerRulesTest {
         for (h in listOf(
             "192.0.2.10", "8.8.8.8", "172.15.0.1", "172.32.0.1", "192.169.0.1", "169.255.0.1", "11.0.0.1", "126.0.0.1", "128.0.0.1", "100.64.0.1",
             "media.example.org", "jellyfin", "nas", "local", ".local", "notlocal", "10.0.0.1.example.org", "192.168.1.1.nip.io", "localhost.example.org",
-            "2001:db8::1", "[2606:4700::1111]", "fec0::1", "fe00::1", "::ffff:10.0.0.1", "::",
+            "2001:db8::1", "[2606:4700::1111]", "fec0::1", "fe00::1",
             // B2-M4: the 16-31 and 168 second-octet bounds belong to 172 and 192 alone …
             "8.20.1.1", "11.16.0.1", "192.16.0.1", "172.168.0.1", "10.example.org",
             // … and a name that merely ends in, or holds, "localhost" or "local" is a public name.
             "notlocalhost", "evil-localhost.example", "localhost.evil.example", "xlocalhost", "my.notlocalhost", "notlocal.", "evil.locale",
             // Odd spellings a resolver may read as an address are treated as names: asked about, never trusted.
             "127.1", "0x7f.0.0.1", "2130706433", "010.0.0.1", "10.0.0", "10.0.0.256", "10.0.0.1.2",
+        )) {
+            assertFalse(h, ServerRules.isPrivate(h))
+        }
+    }
+
+    @Test fun `L20-1 the unspecified address, every spelling of loopback and an IPv4 address inside IPv6 are read as what they are`() {
+        for (h in listOf(
+            // The unspecified address is this phone; loopback in its long and zero-padded forms is ::1.
+            "0.0.0.0", "::", "[::]", "0:0:0:0:0:0:0:0", "0:0:0:0:0:0:0:1", "[0:0:0:0:0:0:0:1]", "0000:0000:0000:0000:0000:0000:0000:0001",
+            "0::1", "::0:1", "::0.0.0.1",
+            // IPv4-mapped (::ffff:a.b.c.d) and IPv4-compatible (::a.b.c.d) addresses are judged by their IPv4 part.
+            "::ffff:10.0.0.1", "[::ffff:10.0.0.1]", "::ffff:192.168.1.5", "::ffff:127.0.0.1", "::ffff:169.254.1.1", "::ffff:172.16.0.1",
+            "::ffff:0.0.0.0", "::ffff:0a00:0001", "::FFFF:c0a8:0105", "0:0:0:0:0:ffff:10.0.0.1", "::10.0.0.1", "::192.168.0.1",
+        )) {
+            assertTrue(h, ServerRules.isPrivate(h))
+        }
+        for (h in listOf(
+            // The same forms around a public IPv4 address stay public, and only 0.0.0.0 itself of 0.0.0.0/8 is this phone.
+            "::ffff:8.8.8.8", "::ffff:192.0.2.10", "::ffff:0808:0808", "::ffff:172.32.0.1", "::8.8.8.8", "::2", "::1:0", "0.0.0.1", "0.1.2.3",
+            // A group or an embedded address the strict reading refuses stays a name: asked about, never trusted.
+            ":::1", "::1::", "1:2:3:4:5:6:7:8:9", "::fffff:1", "::g", "::ffff:10.0.0", "::ffff:10.0.0.256", "::ffff:10.0.0.01", "::ffff:1:10.0.0.1",
+            "1::", "0:0:0:0:0:0:0:2", "::ffff:010.0.0.1",
+            // An IPv4 address or a 1 in the last groups counts only when every group before them is zero.
+            "0:0:0:0:1:ffff:10.0.0.1", "::1:0:10.0.0.1", "::1:0:0:1", "1::ffff:10.0.0.1", "1::1",
         )) {
             assertFalse(h, ServerRules.isPrivate(h))
         }
