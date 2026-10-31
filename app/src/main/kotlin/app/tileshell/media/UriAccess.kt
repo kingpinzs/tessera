@@ -198,7 +198,8 @@ class ContentUriText private constructor(val text: String, val scheme: String?, 
  * WHAT THE LAUNCH GRANT LEAVES OPEN (verified in that source; nothing inside the activity can close it): an app that
  * cannot read library item X starts a helper through `startNextMatchingActivity`, with the grant flag, at a moment the
  * shell holds a NON-persisted grant for exactly X's text from somewhere else — another live viewer, player or capture
- * launched with X, a clip the shell read, another app's explicit grant. It is admitted: the viewer shows X read-only
+ * launched with X (that grant is owned by its activity until it goes), or (UNVERIFIED, not read in source) a clip the
+ * shell read or another app's `grantUriPermission` to it. It is admitted: the viewer shows X read-only
  * in that app's task, the player plays it; a capture still needs (d1). On API 34 a system or root starter with such a
  * stale grant is admitted the same way (on API 35+ the launch answer already says "granted" for those two uids,
  * `checkContentUriPermissionFullUnlocked`).
