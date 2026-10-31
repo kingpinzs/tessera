@@ -85,8 +85,24 @@ class ServerRulesTest {
             "1::", "0:0:0:0:0:0:0:2", "::ffff:010.0.0.1",
             // An IPv4 address or a 1 in the last groups counts only when every group before them is zero.
             "0:0:0:0:1:ffff:10.0.0.1", "::1:0:10.0.0.1", "::1:0:0:1", "1::ffff:10.0.0.1", "1::1",
+            // The L20-1 review's survivors: a quad before `::` or not last, too many groups, a five-digit group, a
+            // public quad that only looks like loopback, and ::fffe (not the mapped prefix).
+            "0.0.0.0::", "0:0:0:0::0:ffff:a00:1", "::0.1.0.1", "::ffff:0.0.0.1", "::0.0.10.0:1", "::0ffff:a00:1", "0:0:0:0:0:0:0:1:5",
+            "::fffe:10.0.0.1",
         )) {
             assertFalse(h, ServerRules.isPrivate(h))
+        }
+        // A spelling the strict reading refuses keeps the first-group rule: a zone index on a link-local address.
+        assertTrue(ServerRules.isPrivate("fe80::1%wlan0"))
+    }
+
+    @Test fun `L20-1 only ASCII digits make an address - other scripts' digits are a name, asked about`() {
+        for (h in listOf("１０.0.0.1", "::ffff:１０.0.0.1", "::ffff:١٠.٠.٠.١", "::ffff:१०.0.0.1", "１２７.0.0.1", "::１２７.0.0.1")) {
+            assertFalse(h, ServerRules.isPrivate(h))
+        }
+        // The same rule for the port: one typed in another script's digits is no port.
+        for (typed in listOf("10.0.2.2:８０９６", "[fe80::1]:８０９６", "http://192.168.1.10:٨٠٩٦")) {
+            assertNull(typed, ServerRules.parse(typed))
         }
     }
 

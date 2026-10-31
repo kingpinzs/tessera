@@ -92,7 +92,7 @@ object ServerRules {
             portText = if (colon >= 0) text.substring(colon + 1) else null
             if (!HOST_NAME.matches(host)) return null
         }
-        val typedPort = portText?.let { p -> p.toIntOrNull()?.takeIf { it in 1..65535 && p.all(Char::isDigit) } ?: return null }
+        val typedPort = portText?.let { p -> p.toIntOrNull()?.takeIf { it in 1..65535 && p.all { c -> c in '0'..'9' } } ?: return null }
         val port = typedPort ?: if (scheme == "http") DEFAULT_HTTP_PORT else null
         val shownHost = if (host.contains(':')) "[$host]" else host.lowercase(Locale.ROOT)
         val label = if (port != null) "$shownHost:$port" else shownHost
@@ -145,11 +145,14 @@ object ServerRules {
         return (g[0] and 0xffc0) == 0xfe80 || (g[0] and 0xfe00) == 0xfc00
     }
 
-    /** The four octets of a strict dotted quad (four decimal parts, 0–255, no leading zeros), else null. */
+    /**
+     * The four octets of a strict dotted quad (four decimal parts of ASCII digits, 0–255, no leading zeros), else null.
+     * ASCII only (the L20-1 review): `Char.isDigit` and `toInt` also take fullwidth, Arabic-Indic and Devanagari digits.
+     */
     private fun ipv4(h: String): IntArray? {
         val parts = h.split('.')
         if (parts.size != 4) return null
-        val n = parts.map { p -> if (p.isEmpty() || p.length > 3 || !p.all(Char::isDigit) || (p.length > 1 && p[0] == '0')) return null else p.toInt() }
+        val n = parts.map { p -> if (p.isEmpty() || p.length > 3 || !p.all { it in '0'..'9' } || (p.length > 1 && p[0] == '0')) return null else p.toInt() }
         if (n.any { it > 255 }) return null
         return n.toIntArray()
     }
