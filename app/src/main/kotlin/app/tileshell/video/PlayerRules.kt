@@ -55,8 +55,8 @@ class PlayerSource(val request: PlayerRequest, val failure: PlayerFailure?, val 
  * Who may make the player open what (trust reviews C-M4 (a), (b), (d); C2-M1, C2-M3, C2-L1, C2-L3). TRUST-TOUCHING.
  * PlayerActivity is exported and opens a source with the SHELL's identity — its media permission, its own files — so
  * what it opens for another app must be something that app could open itself. Whether another app may read a `content`
- * source is not decided here: it is `media/UriAccessRules.starterMayRead`, the ONE rule the viewer and the capture
- * answer read by too, over the one platform port. Pure: no Android type, every combination unit-tested.
+ * source is not decided here: it is `media/UriAccessRules.helperMayRead`, the rule the viewer reads by too, over the
+ * one platform port the capture answer asks. Pure: no Android type, every combination unit-tested.
  */
 object PlayerAccess {
     const val LINE_QUEUE_IGNORED = "queue ignored: not the shell's own launch"
@@ -189,7 +189,8 @@ object PlayerRules {
      * the access rule reads the scheme and authority from that one text, and it is the text the player opens.
      * [scheme], [authority] and [path] are `Uri.getScheme()`, `getEncodedAuthority()` and `getPath()` of the same URI,
      * for the scheme rule's names and lines. Another app's `content` source is asked about
-     * (`UriAccessRules.starterMayRead`) and nothing else is; a rule or a platform read that throws refuses.
+     * (`UriAccessRules.helperMayRead`: the starter rule, or (D1 (a)) the grant the platform made the shell for this
+     * launch) and nothing else is; a rule or a platform read that throws refuses.
      */
     fun source(
         text: String?, scheme: String?, authority: String?, path: String?, ownFileRoots: List<String>, own: Boolean, access: UriAccessPort,
@@ -199,12 +200,13 @@ object PlayerRules {
         var callerMayRead = false
         if (text != null && !own && scheme.equals("content", ignoreCase = true)) {
             val read = try {
-                UriAccessRules.starterMayRead(access, ContentUriText.parse(text))
+                UriAccessRules.helperMayRead(access, ContentUriText.parse(text))
             } catch (e: Throwable) {
                 UriAccessRules.Read(UriAccessRules.ReadWhy.NONE, UriAccessRules.LAUNCH_NOT_ASKED)
             }
             callerMayRead = read.allowed
             if (read.launch != UriAccessRules.LAUNCH_NOT_ASKED) lines += UriAccessRules.launchLine(UriAccessRules.READ, read.launch)
+            read.grant?.let { lines += UriAccessRules.grantLine(UriAccessRules.READ, it) }
             if (read.allowed) lines += PlayerAccess.line(read.why)
         }
         val request = if (text == null) PlayerRequest.Unsupported("none") else request(scheme, authority, path, ownFileRoots, own, callerMayRead, canonical)

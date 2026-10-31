@@ -16,7 +16,9 @@ package app.tileshell.media
  *      `UriAccessRules.captureMayWrite` — the one rule the viewer and the player read by, too). BOTH of: (d1) the app
  *      the result goes to owns the provider, or holds an explicit write grant for that URI, or (MediaStore, API 35+)
  *      the provider, asked, says it may; and (d2) on API 35+ the platform says the app that really STARTED the capture
- *      could write it — so a go-between that forwards another app's result gains nothing. A permission-wide access
+ *      could write it — by its launch answer, or (D1 (a), a MediaStore row) by the write grant the platform made the
+ *      shell for this launch after checking that starter (`UriAccessRules.launchGrant`) — so a go-between that
+ *      forwards another app's result gains nothing. A permission-wide access
  *      with no grant (WRITE_CONTACTS, the system uid) is never enough. On API 34 (d2) cannot be asked and a MediaStore
  *      row the caller owns is refused unless it holds a grant for it: the guard fails closed.
  * Anything else is refused and nothing is written.

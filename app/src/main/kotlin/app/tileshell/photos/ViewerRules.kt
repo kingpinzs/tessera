@@ -14,17 +14,18 @@ import app.tileshell.media.UriAccessRules
  *  - the shell itself (the platform names the starter and it is the shell's own uid) → the picture is shown and every
  *    action is offered;
  *  - any other app, and an app the platform does not name → the picture is shown only when the platform says that app
- *    could read it itself ([UriAccessRules.starterMayRead], the one rule the player and the capture answer read by
- *    too), and then read-only: Share and File information, never Edit, Delete or Set as.
+ *    could read it itself ([UriAccessRules.helperMayRead], the rule the player reads by too, over the one port the
+ *    capture answer asks), and then read-only: Share and File information, never Edit, Delete or Set as.
  */
 object ViewerRules {
     const val LINE_NO_GRANT = "refused view: no grant"
 
     /**
      * [show]: decode and show the picture. [mayChange]: offer the actions that change something. [line]: the refusal's.
-     * [launch]: the `launch answer read: …` line when the platform's launch answer was asked.
+     * [launch]: the `launch answer read: …` line when the platform's launch answer was asked. [grant]: the
+     * `launch grant read: …` line when the launch carried the read grant flag and the launch grant was asked (D1 (a)).
      */
-    data class Open(val show: Boolean, val mayChange: Boolean, val line: String?, val request: String, val launch: String? = null)
+    data class Open(val show: Boolean, val mayChange: Boolean, val line: String?, val request: String, val launch: String? = null, val grant: String? = null)
 
     /**
      * What `ViewerNav` holds after a launch: the one URI to open ([uri], null when nothing is shown), whether a named
@@ -34,22 +35,25 @@ object ViewerRules {
 
     /**
      * Whether the picture [uri] names is shown, and how. Another app's URI is shown read-only when
-     * [UriAccessRules.starterMayRead] says the app that started the viewer could read it; anything else is refused: the
-     * viewer's error state and [LINE_NO_GRANT].
+     * [UriAccessRules.helperMayRead] says the app that started the viewer could read it — the starter rule, or (D1 (a))
+     * the grant the platform made the shell for this launch; anything else is refused: the viewer's error state and
+     * [LINE_NO_GRANT].
      *
      * ON AN API 34 PHONE (Android 14) the platform neither names an ordinary starter nor answers for it, so a content
-     * URI from another app that does not share its identity — nearly every app — is REFUSED, whatever that app could
-     * read. On API 35 and later (the owner's phone is API 36) the platform is asked.
+     * URI from another app that does not share its identity — nearly every app — is REFUSED unless it is a library
+     * picture whose launch carried the read grant flag and made the shell that grant. On API 35 and later (the owner's
+     * phone is API 36) the platform's launch answer is asked first.
      */
     fun open(uri: ContentUriText, access: UriAccessPort): Open {
         if (UriAccessRules.isOwnLaunch(access)) return Open(show = true, mayChange = true, line = null, request = "viewer request from the shell: shown")
         val who = if (UriAccessRules.starterUid(access) == null) "an unnamed app" else "another app"
-        val read = UriAccessRules.starterMayRead(access, uri)
+        val read = UriAccessRules.helperMayRead(access, uri)
         val launch = read.launch.takeIf { it != UriAccessRules.LAUNCH_NOT_ASKED }?.let { UriAccessRules.launchLine(UriAccessRules.READ, it) }
+        val grant = read.grant?.let { UriAccessRules.grantLine(UriAccessRules.READ, it) }
         return if (read.allowed) {
-            Open(show = true, mayChange = false, line = null, request = "viewer request from $who: shown read-only", launch = launch)
+            Open(show = true, mayChange = false, line = null, request = "viewer request from $who: shown read-only", launch = launch, grant = grant)
         } else {
-            Open(show = false, mayChange = false, line = LINE_NO_GRANT, request = "viewer request from $who: refused", launch = launch)
+            Open(show = false, mayChange = false, line = LINE_NO_GRANT, request = "viewer request from $who: refused", launch = launch, grant = grant)
         }
     }
 
@@ -71,7 +75,7 @@ object ViewerRules {
             uri = if (decision.show) named.text else null,
             refused = !decision.show,
             mayChange = decision.show && decision.mayChange,
-            lines = listOfNotNull(decision.request, decision.launch, decision.line),
+            lines = listOfNotNull(decision.request, decision.launch, decision.grant, decision.line),
         )
     }
 
