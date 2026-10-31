@@ -45,6 +45,12 @@ class SecureWindows<W : Any> {
 
     fun showing(window: W): Int = showing[window] ?: 0
 
+    /**
+     * How many windows the count holds: only those with a credential page showing. A window's entry goes when its last
+     * page leaves, and a window that is gone with a page still counted is not held (the D2 review's R6).
+     */
+    val tracked: Int get() = showing.size
+
     companion object {
         /** The step's line: what the window now does, never which page or how many. */
         fun line(step: SecureStep): String = when (step) {
@@ -60,6 +66,13 @@ class SecureWindows<W : Any> {
  * call and may throw; [PastedCredential.afterEdit] catches and names the class.
  */
 interface ClipPort {
+    /**
+     * Whether the primary clip holds text, from its DESCRIPTION alone (`getPrimaryClipDescription()`, as Compose itself
+     * asks before it offers Paste): the clip's content is not read, and AOSP's ClipboardService neither notes that call
+     * nor answers it with the "pasted from your clipboard" notice — only `getPrimaryClip()` does, once per clip per app.
+     */
+    fun describesText(): Boolean
+
     /** The text a paste puts in: the primary clip's first item's text, as Compose's own paste reads it — or null. */
     fun text(): String?
 
@@ -69,7 +82,10 @@ interface ClipPort {
 
 /** What a secret field's edit did to the clipboard. */
 sealed interface ClipOutcome {
-    /** The edit put in fewer than [PastedCredential.MIN_PASTE] characters at once (typing, deleting): the clipboard is not read. */
+    /**
+     * The clipboard is not read: the edit put in fewer than [PastedCredential.MIN_PASTE] characters at once (typing,
+     * deleting) and was not Compose's paste, or the clipboard's description says it holds no text.
+     */
     data object NotRead : ClipOutcome
 
     /** Read, and the edit is not the clipboard's text put in: left as it is. */
@@ -89,10 +105,23 @@ sealed interface ClipOutcome {
  * text is its old text with the clipboard's text put in (in place of a selection, or of nothing) — and only if, at the
  * moment of clearing, the clipboard still holds exactly what was pasted.
  *
- * Typed text never clears it: an edit that puts in fewer than [MIN_PASTE] characters at once is typing or deleting, and
- * the clipboard is not even read for it — so typing raises no "pasted from your clipboard" notice either. The field's
- * RAW edit is what is weighed (before its single-line filter drops a line feed), so a token copied with its line break is
- * still seen as the paste it is.
+ * A paste reaches the field two ways, and each is weighed its own way (the D2 review's F1, F2):
+ *  - COMPOSE'S OWN PASTE — the context menu's or toolbar's Paste, Ctrl+V or the keyboard's paste key, accessibility's
+ *    paste. Compose reads the clipboard for it through the field's Clipboard, which tells the field what it read
+ *    ([SecretEdits.pasteRead]); the edit that puts that text in is the paste, however little of the old text it changes
+ *    (a selection pasted over with text one character longer). Nothing is guessed and the clipboard is read once more,
+ *    only to check that it still holds what was pasted. Left as they were: a clip of one character (taken for typing,
+ *    as on the keyboard's path) and a paste over the very same text (Compose's field makes no edit for it).
+ *  - A KEYBOARD'S COMMIT — its clipboard chip commits the text through the input method, and Compose never reads the
+ *    clipboard for it, so only the text can tell. That path reads the clipboard as little as it can: never for an edit
+ *    that puts in fewer than [MIN_PASTE] characters at once (typing, deleting — no read, so no notice either), and,
+ *    for the rest, only when the clip's description, which is no read, says it holds text. THE TRADE-OFF: a keyboard's
+ *    commit of two or more characters, or an autofill, while the clipboard holds text costs one read of it; on
+ *    Android 12 and later that read may raise the system's "pasted from your clipboard" notice, once for that clip,
+ *    for an edit that was not a paste. No call tells such an edit from a chip's paste without reading the clip.
+ *
+ * The field's RAW edit is what is weighed (before its single-line filter drops a line feed), so a token copied with its
+ * line break is still seen as the paste it is.
  *
  * Nothing about the pasted value is ever written: [line] says cleared or not and why — no content, no length, and a
  * failure by its exception's class alone (B-1: a pasted value must never reach a log through an exception's message).
@@ -130,13 +159,20 @@ object PastedCredential {
     fun mayClear(pasted: String, now: String?): Boolean = now == pasted
 
     /**
-     * A secret field's edit: the clipboard read only when the edit could be a paste, cleared only when it was one and the
-     * clipboard has not changed since. Never throws — the field's edit goes on whatever the clipboard does.
+     * A secret field's edit from [before] to [after]: [pasteRead] is what Compose's own paste read off the clipboard just
+     * before it, if it did. That paste, put in by this edit, is weighed as it is; any other edit is a keyboard's, read
+     * against the clipboard only when it could be a paste and the clipboard holds text. Cleared only when the edit was a
+     * paste and the clipboard has not changed since. Never throws — the field's edit goes on whatever the clipboard does.
      */
-    fun afterEdit(before: String, after: String, clip: ClipPort): ClipOutcome {
-        if (!couldBePaste(before, after)) return ClipOutcome.NotRead
+    fun afterEdit(before: String, after: String, clip: ClipPort, pasteRead: String? = null): ClipOutcome {
+        val composePaste = pasteRead != null && isPaste(before, after, pasteRead)
+        if (!composePaste && !couldBePaste(before, after)) return ClipOutcome.NotRead
         return try {
-            val pasted = clip.text()
+            val pasted = when {
+                composePaste -> pasteRead
+                clip.describesText() -> clip.text()
+                else -> return ClipOutcome.NotRead
+            }
             when {
                 pasted == null || !isPaste(before, after, pasted) -> ClipOutcome.NotAPaste
                 !mayClear(pasted, clip.text()) -> ClipOutcome.Newer
@@ -150,12 +186,51 @@ object PastedCredential {
         }
     }
 
-    /** The outcome's line, or null for typing (nothing is written per keystroke). */
+    /** The outcome's line, or null when the clipboard was not read (typing — nothing is written per keystroke). */
     fun line(outcome: ClipOutcome): String? = when (outcome) {
         ClipOutcome.NotRead -> null
         ClipOutcome.NotAPaste -> "credential field: not the clipboard's text, clipboard left as it is"
         ClipOutcome.Cleared -> "credential pasted: clipboard cleared"
         ClipOutcome.Newer -> "credential pasted: clipboard not cleared, it holds a newer copy"
         is ClipOutcome.Failed -> "credential field: clipboard not cleared (${outcome.exception})"
+    }
+}
+
+/**
+ * One secret field's memory between its edits (D2 (a) 2), held by the field (`remember`), on the main thread.
+ *
+ * The text an edit is weighed against is the field's text just BEFORE that edit (the D2 review's N2): the last raw edit
+ * — two edits can land before the page shows the first, and the page's value is the older one until it recomposes — or
+ * the value the page set since (its single-line filter, a reset). Where the page's filter turns an edit back into the
+ * value it already had (a lone line feed, a cut at the field's length), the raw edit stays the base for the next edit
+ * alone, until the page's value changes again.
+ *
+ * And what Compose's own paste read off the clipboard (the review's F1), told as it is read by the field's Clipboard;
+ * the edit Compose then makes takes it, so it is weighed for that one edit only.
+ */
+class SecretEdits(value: String) {
+    private var page = value
+    private var before = value
+    private var read: String? = null
+
+    /** The page's value, as each composition gives it: a value the page changed is the field's text from now on. */
+    fun shown(value: String) {
+        if (value == page) return
+        page = value
+        before = value
+    }
+
+    /** Compose's own paste read [text] off the clipboard (the first item's text, or null): its edit comes next. */
+    fun pasteRead(text: String?) {
+        read = text
+    }
+
+    /** The field's raw edit to [after], weighed against its text just before it and what Compose's paste read for it. */
+    fun edited(after: String, clip: ClipPort): ClipOutcome {
+        val was = before
+        val pasted = read
+        before = after
+        read = null
+        return PastedCredential.afterEdit(was, after, clip, pasted)
     }
 }

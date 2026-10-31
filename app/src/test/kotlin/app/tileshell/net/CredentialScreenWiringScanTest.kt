@@ -19,8 +19,10 @@ import org.junit.Test
  *    secret one; password-style input exists only in OutlinedField's secret form;
  *  - the window's FLAG_SECURE is touched only by the secure page's two steps, which follow the count's answer, and the
  *    page is counted in as it appears and out as it leaves;
- *  - only a secret field reaches the clipboard, its RAW edit is weighed by the rule, the clip is cleared only by the
- *    port's one call (which only the rule makes), and what is written is the rule's line and nothing else.
+ *  - only a secret field reaches the clipboard, its RAW edit is weighed by the rule against its text just before the
+ *    edit (its own memory, `SecretEdits`), Compose's own paste is told to that memory by the field's Clipboard as it is
+ *    read, the clip is cleared only by the port's one call (which only the rule makes), and what is written is the
+ *    rule's line and nothing else.
  * Each check has its twin: the same source with the site changed must be caught, so a clean result is never an empty
  * one. That the device does what the source says is the final device pass's.
  */
@@ -121,8 +123,32 @@ class CredentialScreenWiringScanTest {
         // ---- the clipboard: only a secret field, its raw edit, the rule's one clear, the rule's line
         val field = sources["ui/components/OutlinedField.kt"].orEmpty()
         if (count(field, "val clip = if (secret) AndroidClip(LocalContext.current) else null") != 1) problems += "the clipboard is reached for a field that is not a secret one"
-        if (!field.contains("onValueChange = { typed -> val kept = if (singleLine) typed.replace(\"\\n\", \"\") else typed onValueChange(kept.take(maxLength)) if (clip != null) afterSecretEdit(linesTag, value, typed, clip) }")) {
+        if (!field.contains("onValueChange = { typed -> val kept = if (singleLine) typed.replace(\"\\n\", \"\") else typed onValueChange(kept.take(maxLength)) if (clip != null && edits != null) afterSecretEdit(linesTag, edits, typed, clip) }")) {
             problems += "a secret field's edit is not weighed, raw, against the clipboard"
+        }
+        // Compose's own paste is seen where Compose makes it: the secret field's Clipboard, around its one text field,
+        // tells the field's memory what was read; the memory follows the page's value.
+        for (piece in listOf(
+            "val edits = if (secret) remember { SecretEdits(value) } else null",
+            "if (edits != null) SideEffect { edits.shown(value) }",
+            "val clipboard = LocalClipboard.current val fieldClipboard = if (edits != null) remember(clipboard, edits) { PasteWatch(clipboard, edits) } else clipboard",
+            "CompositionLocalProvider(LocalClipboard provides fieldClipboard) { BasicTextField(",
+            "BasicTextField(",
+        )) if (count(field, piece) != 1) problems += "a secret field's paste is not seen where Compose makes it: $piece"
+        for (name in listOf("PasteWatch", "SecretEdits")) {
+            val madeAt = sources.mapValues { (_, text) -> Regex("(?<!class )\\b$name\\(").findAll(text).count() }.filterValues { it > 0 }
+            if (madeAt != mapOf("ui/components/OutlinedField.kt" to 1)) problems += "$name is made outside the secret field: $madeAt"
+        }
+        if (body(android, "class PasteWatch(private val clipboard: Clipboard, private val edits: SecretEdits) : Clipboard") !=
+            "{ override suspend fun getClipEntry(): ClipEntry? = clipboard.getClipEntry().also { edits.pasteRead(it?.clipData?.let { c -> if (c.itemCount > 0) c.getItemAt(0).text?.toString() else null }) } " +
+            "override suspend fun setClipEntry(clipEntry: ClipEntry?) = clipboard.setClipEntry(clipEntry) override val nativeClipboard: ClipboardManager get() = clipboard.nativeClipboard }"
+        ) problems += "the paste watch does other than tell the field what Compose's paste read, as Compose reads it, and pass the rest on"
+        for (call in listOf("pasteRead", "edited")) {
+            val at = sources.mapValues { (_, text) -> Regex("\\.$call\\(").findAll(text).count() }.filterValues { it > 0 }
+            if (at != mapOf("net/AndroidCredentialScreen.kt" to 1)) problems += "a secret field's memory is told $call other than by its one site: $at"
+        }
+        if (!android.contains("override fun describesText(): Boolean = manager().primaryClipDescription?.hasMimeType(\"text/*\") == true")) {
+            problems += "the port asks whether the clip holds text other than of its description"
         }
         val made = sources.mapValues { (_, text) -> Regex("(?<!class )\\bAndroidClip\\(").findAll(text).count() }.filterValues { it > 0 }
         if (made != mapOf("ui/components/OutlinedField.kt" to 1)) problems += "the clipboard port is made outside the secret field: $made"
@@ -135,7 +161,7 @@ class CredentialScreenWiringScanTest {
         if (!android.contains("override fun text(): String? = manager().primaryClip?.let { if (it.itemCount > 0) it.getItemAt(0).text?.toString() else null }")) {
             problems += "the port does not read the clip as Compose's paste reads it"
         }
-        if (body(android, "fun afterSecretEdit(") != "{ PastedCredential.line(PastedCredential.afterEdit(before, after, clip))?.let { Diagnostics.add(tag, it) } }") {
+        if (body(android, "fun afterSecretEdit(") != "{ PastedCredential.line(edits.edited(after, clip))?.let { Diagnostics.add(tag, it) } }") {
             problems += "a secret field's edit writes something other than the rule's line"
         }
         return problems
@@ -172,8 +198,17 @@ class CredentialScreenWiringScanTest {
         assertTrue(plus("video/VideoActivity.kt", "fun open(w: android.view.Window) { w.clearFlags(android.view.WindowManager.LayoutParams.FLAG_SECURE) }").isNotEmpty())
         // The clipboard reached for every field, weighed on the filtered text, not weighed, cleared elsewhere, read otherwise.
         assertTrue(with("ui/components/OutlinedField.kt", "val clip = if (secret) AndroidClip(LocalContext.current) else null", "val clip = AndroidClip(LocalContext.current)").isNotEmpty())
-        assertTrue(with("ui/components/OutlinedField.kt", "afterSecretEdit(linesTag, value, typed, clip)", "afterSecretEdit(linesTag, value, kept, clip)").isNotEmpty())
-        assertTrue(with("ui/components/OutlinedField.kt", "if (clip != null) afterSecretEdit(linesTag, value, typed, clip)", "").isNotEmpty())
+        assertTrue(with("ui/components/OutlinedField.kt", "afterSecretEdit(linesTag, edits, typed, clip)", "afterSecretEdit(linesTag, edits, kept, clip)").isNotEmpty())
+        assertTrue(with("ui/components/OutlinedField.kt", "if (clip != null && edits != null) afterSecretEdit(linesTag, edits, typed, clip)", "").isNotEmpty())
+        // Compose's paste not seen: the field outside its Clipboard, the watch telling nothing or the wrong item, every
+        // field watched, the memory deaf to the page's value or a new one per edit, the description not asked.
+        assertTrue(with("ui/components/OutlinedField.kt", "CompositionLocalProvider(LocalClipboard provides fieldClipboard) { ", "run { ").isNotEmpty())
+        assertTrue(with("net/AndroidCredentialScreen.kt", ".also { edits.pasteRead(", ".also { edits.hashCode(); listOf(").isNotEmpty())
+        assertTrue(with("net/AndroidCredentialScreen.kt", "if (c.itemCount > 0) c.getItemAt(0).text", "if (c.itemCount > 0) c.getItemAt(c.itemCount - 1).text").isNotEmpty())
+        assertTrue(with("ui/components/OutlinedField.kt", "val edits = if (secret) remember { SecretEdits(value) } else null", "val edits = remember { SecretEdits(value) }").isNotEmpty())
+        assertTrue(with("ui/components/OutlinedField.kt", "if (edits != null) SideEffect { edits.shown(value) } ", "").isNotEmpty())
+        assertTrue(with("ui/components/OutlinedField.kt", "afterSecretEdit(linesTag, edits, typed, clip)", "afterSecretEdit(linesTag, SecretEdits(value), typed, clip)").isNotEmpty())
+        assertTrue(with("net/AndroidCredentialScreen.kt", "manager().primaryClipDescription?.hasMimeType(\"text/*\") == true", "manager().primaryClip != null").isNotEmpty())
         assertTrue(plus("video/TmdbKeyPage.kt", "fun wipe(c: Context) { c.getSystemService(ClipboardManager::class.java).clearPrimaryClip() }").isNotEmpty())
         assertTrue(with("net/AndroidCredentialScreen.kt", "override fun clear() = manager().clearPrimaryClip()", "override fun clear() = manager().setPrimaryClip(ClipData.newPlainText(\"\", \"\"))").isNotEmpty())
         assertTrue(with("net/AndroidCredentialScreen.kt", "it.getItemAt(0).text?.toString()", "it.getItemAt(0).coerceToText(context).toString()").isNotEmpty())

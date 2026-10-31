@@ -11,10 +11,14 @@ import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.CompositionLocalProvider
+import androidx.compose.runtime.SideEffect
+import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.SolidColor
+import androidx.compose.ui.platform.LocalClipboard
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.semantics.password
@@ -27,6 +31,8 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import app.tileshell.net.AndroidClip
+import app.tileshell.net.PasteWatch
+import app.tileshell.net.SecretEdits
 import app.tileshell.net.afterSecretEdit
 import app.tileshell.ui.tokens.ShellType
 
@@ -76,13 +82,19 @@ fun OutlinedField(
      *
      * Phase 17, D2 (a): a paste into it is cleared from the clipboard ([app.tileshell.net.PastedCredential]: a paste
      * only, never typing, and only while the clipboard still holds what was pasted), and the page it is on calls
-     * [app.tileshell.net.SecurePage] first. Only a secret field ever reads the clipboard.
+     * [app.tileshell.net.SecurePage] first. Only a secret field ever reads the clipboard. Compose's own paste is seen
+     * where Compose makes it, through the field's Clipboard ([PasteWatch]); a keyboard's paste by the edit's text.
      */
     secret: Boolean = false,
     /** The diagnostics tag a secret field's clipboard lines are written under: its page's own (`video`, `music`). */
     linesTag: String = "shell",
 ) {
     val clip = if (secret) AndroidClip(LocalContext.current) else null
+    // The field's text before each edit and what Compose's paste read for it; told the page's value as it changes.
+    val edits = if (secret) remember { SecretEdits(value) } else null
+    if (edits != null) SideEffect { edits.shown(value) }
+    val clipboard = LocalClipboard.current
+    val fieldClipboard = if (edits != null) remember(clipboard, edits) { PasteWatch(clipboard, edits) } else clipboard
     Box(
         modifier
             .height(height)
@@ -98,25 +110,28 @@ fun OutlinedField(
                 maxLines = 1,
             )
         }
-        BasicTextField(
-            value = value,
-            onValueChange = { typed ->
-                val kept = if (singleLine) typed.replace("\n", "") else typed
-                onValueChange(kept.take(maxLength))
-                // The RAW edit is weighed, before the line feed is dropped: a token copied with its line break is still
-                // the clipboard's text put in.
-                if (clip != null) afterSecretEdit(linesTag, value, typed, clip)
-            },
-            modifier = Modifier.fillMaxSize().padding(horizontal = OutlinedFieldMetrics.TEXT_INSET).testTag(tag)
-                .then(if (secret) Modifier.semantics { password() } else Modifier),
-            enabled = enabled,
-            textStyle = textStyle,
-            singleLine = singleLine,
-            keyboardOptions = KeyboardOptions(keyboardType = if (secret) KeyboardType.Password else keyboardType, imeAction = imeAction, autoCorrectEnabled = if (secret) false else null),
-            visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
-            keyboardActions = KeyboardActions(onAny = { onImeAction?.invoke() }),
-            cursorBrush = SolidColor(Color.White),
-            decorationBox = { inner -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { inner() } },
-        )
+        // Compose's own paste reads through the field's Clipboard: a secret field's tells its edits what was read.
+        CompositionLocalProvider(LocalClipboard provides fieldClipboard) {
+            BasicTextField(
+                value = value,
+                onValueChange = { typed ->
+                    val kept = if (singleLine) typed.replace("\n", "") else typed
+                    onValueChange(kept.take(maxLength))
+                    // The RAW edit is weighed, before the line feed is dropped: a token copied with its line break is
+                    // still the clipboard's text put in.
+                    if (clip != null && edits != null) afterSecretEdit(linesTag, edits, typed, clip)
+                },
+                modifier = Modifier.fillMaxSize().padding(horizontal = OutlinedFieldMetrics.TEXT_INSET).testTag(tag)
+                    .then(if (secret) Modifier.semantics { password() } else Modifier),
+                enabled = enabled,
+                textStyle = textStyle,
+                singleLine = singleLine,
+                keyboardOptions = KeyboardOptions(keyboardType = if (secret) KeyboardType.Password else keyboardType, imeAction = imeAction, autoCorrectEnabled = if (secret) false else null),
+                visualTransformation = if (secret) PasswordVisualTransformation() else VisualTransformation.None,
+                keyboardActions = KeyboardActions(onAny = { onImeAction?.invoke() }),
+                cursorBrush = SolidColor(Color.White),
+                decorationBox = { inner -> Box(Modifier.fillMaxSize(), contentAlignment = Alignment.CenterStart) { inner() } },
+            )
+        }
     }
 }
