@@ -393,7 +393,8 @@ object UriAccessRules {
         val scheme = grant.scheme ?: return false
         val heldAuthority = grant.authority ?: return false
         if (!scheme.equals("content", ignoreCase = true) || !heldAuthority.equals(authority, ignoreCase = true)) return false
-        val heldPath = held.substring(scheme.length + "://".length + heldAuthority.length)
+        // ContentUriText found an authority, so the scheme is followed by ":" and "//" (three characters), then it.
+        val heldPath = held.substring(scheme.length + 3 + heldAuthority.length)
         if (!PLAIN_PATH.matches(heldPath)) return true
         val above = heldPath.split('/').filter { it.isNotEmpty() }
         val asked = pathOf(text, authority).split('/').filter { it.isNotEmpty() }
