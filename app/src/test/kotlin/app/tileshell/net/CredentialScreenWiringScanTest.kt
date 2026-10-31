@@ -18,7 +18,8 @@ import org.junit.Test
  *    future credential page cannot forget the window flag, and every field that looks like it takes a credential is a
  *    secret one; password-style input exists only in OutlinedField's secret form;
  *  - the window's FLAG_SECURE is touched only by the secure page's two steps, which follow the count's answer, and the
- *    page is counted in as it appears and out as it leaves;
+ *    page is counted in as it appears and out as it leaves, by the process's one count; no other code clears or sets a
+ *    window's flags by anything but their names, nor replaces or edits its attributes, where the flag also lives;
  *  - only a secret field reaches the clipboard, its RAW edit is weighed by the rule against its text just before the
  *    edit (its own memory, `SecretEdits`), Compose's own paste is told to that memory by the field's Clipboard as it is
  *    read, the clip is cleared only by the port's one call (which only the rule makes), and what is written is the
@@ -58,7 +59,8 @@ class CredentialScreenWiringScanTest {
     /** The innermost function whose body holds [index]. */
     private fun enclosing(text: String, index: Int): Fn? = functions(text).filter { index in it.start..it.end }.maxByOrNull { it.start }
 
-    private val FIELD = Regex("(?<![\\w.])OutlinedField\\(")
+    /** A call of the shell's text box, by its own name or fully qualified (the D2 review's W12). */
+    private val FIELD = Regex("(?<!\\w)OutlinedField\\(")
     private val CREDENTIAL_WORDS = Regex("(?i)password|passcode|passphrase|token|secret|api_?key|_key\\b|key_field")
 
     /** What is wrong with the credential pages' wiring; empty when nothing is. */
@@ -68,6 +70,9 @@ class CredentialScreenWiringScanTest {
         // ---- every secret field is on a page that calls SecurePage first; every credential-looking field is secret
         val secretPages = mutableSetOf<String>()
         for ((file, text) in sources) {
+            if (Regex("\\bimport app\\.tileshell\\.ui\\.components\\.OutlinedField as\\b").containsMatchIn(text)) {
+                problems += "$file: OutlinedField imported under another name, which hides its calls from this scan"
+            }
             for (m in FIELD.findAll(text)) {
                 if (text.startsWith("fun ", m.range.first - 4)) continue
                 val field = call(text, m.range.first)
@@ -119,6 +124,28 @@ class CredentialScreenWiringScanTest {
             !page.contains("secure(window, secureWindows.shown(window), tag) onDispose { secure(window, secureWindows.left(window), tag) }")
         ) problems += "the page's window is not counted in as it appears and out as it leaves"
         if (count(android, "secureWindows.") != 2 || !android.contains("private val secureWindows = SecureWindows<Window>()")) problems += "the count is changed other than by a page appearing and leaving"
+        // One count per process (the D2 review's W4): a second count — a page's own, say — would clear the flag while
+        // another credential page is still up.
+        val counts = sources.mapValues { (_, text) -> Regex("\\bSecureWindows\\s*(?:<[^>]*>)?\\s*\\(").findAll(text).count() }.filterValues { it > 0 }
+        if (counts != mapOf("net/AndroidCredentialScreen.kt" to 1)) problems += "the windows are counted other than by the process's one count: $counts"
+        // Nothing else clears or sets a window's flags but by their names, none of them FLAG_SECURE, nor replaces or edits
+        // the window's attributes, which hold the flag too (the D2 review's W9: a bare 0x2000 is FLAG_SECURE unnamed).
+        val namedFlag = Regex("WindowManager\\.LayoutParams\\.FLAG_(?!SECURE\\b)[A-Z_]+")
+        for ((file, text) in sources) {
+            for (m in Regex("\\b(?:clearFlags|setFlags)\\(").findAll(text)) {
+                val flagCall = call(text, m.range.first)
+                val operands = flagCall.substringAfter('(').dropLast(1).replace("android.view.", "")
+                    .split(Regex("\\bor\\b|,")).map { it.trim() }.filter { it.isNotEmpty() }
+                val secureStep = file == "net/AndroidCredentialScreen.kt" && flagCall == "clearFlags(WindowManager.LayoutParams.FLAG_SECURE)"
+                if (!secureStep && (operands.isEmpty() || !operands.all { namedFlag.matches(it) })) {
+                    problems += "$file: a window's flags are cleared or set by other than their names, or FLAG_SECURE's: $flagCall"
+                }
+            }
+            for (attributes in listOf(
+                "\\.attributes\\s*=(?!=)", "\\bsetAttributes\\(", "\\.flags\\s*(?:=(?!=)|\\+=|-=)",
+                "\\.attributes\\s*\\.\\s*(?:apply|run|also|let)\\b", "\\bwith\\s*\\([^)]*\\.attributes\\s*\\)", "\\bupdateViewLayout\\(",
+            )) if (Regex(attributes).containsMatchIn(text)) problems += "$file: a window's attributes, which hold FLAG_SECURE, are replaced or edited: $attributes"
+        }
 
         // ---- the clipboard: only a secret field, its raw edit, the rule's one clear, the rule's line
         val field = sources["ui/components/OutlinedField.kt"].orEmpty()
@@ -212,6 +239,26 @@ class CredentialScreenWiringScanTest {
         assertTrue(plus("video/TmdbKeyPage.kt", "fun wipe(c: Context) { c.getSystemService(ClipboardManager::class.java).clearPrimaryClip() }").isNotEmpty())
         assertTrue(with("net/AndroidCredentialScreen.kt", "override fun clear() = manager().clearPrimaryClip()", "override fun clear() = manager().setPrimaryClip(ClipData.newPlainText(\"\", \"\"))").isNotEmpty())
         assertTrue(with("net/AndroidCredentialScreen.kt", "it.getItemAt(0).text?.toString()", "it.getItemAt(0).coerceToText(context).toString()").isNotEmpty())
+        // A second count inside the secure page (the D2 review's W4), or one remembered per page.
+        assertTrue(with("net/AndroidCredentialScreen.kt", "fun SecurePage(tag: String) { ", "fun SecurePage(tag: String) { val secureWindows = SecureWindows<Window>() ").isNotEmpty())
+        assertTrue(with("net/AndroidCredentialScreen.kt", "fun SecurePage(tag: String) { ", "fun SecurePage(tag: String) { val secureWindows = remember { SecureWindows<Window>() } ").isNotEmpty())
+        // The flag cleared or replaced without its name (W9): a bare number, a mask, an alias, the attributes.
+        for (code in listOf(
+            "w.clearFlags(0x2000)",
+            "w.clearFlags(8192)",
+            "w.setFlags(0, android.view.WindowManager.LayoutParams.FLAG_SECURE)",
+            "w.setFlags(0, SECURE_BIT)",
+            "w.clearFlags(app.tileshell.media.CaptureOutputGuard.FLAG_GRANT_WRITE shl 12)",
+            "w.attributes = android.view.WindowManager.LayoutParams()",
+            "w.setAttributes(android.view.WindowManager.LayoutParams())",
+            "w.attributes.flags = 0",
+            "w.attributes.apply { flags = 0 }",
+            "with(w.attributes) { flags = flags and 0x2000.inv() }",
+            "w.windowManager.updateViewLayout(w.decorView, w.attributes)",
+        )) assertTrue(code, plus("video/VideoActivity.kt", "fun open(w: android.view.Window) { $code }").isNotEmpty())
+        // A secret field called by its full name, or under another name, on a page that does not secure itself (W12).
+        assertTrue(plus("video/HubPages.kt", "@Composable fun PinPage() { app.tileshell.ui.components.OutlinedField(\"\", {}, \"pin_field\", secret = true, linesTag = \"video\") }").isNotEmpty())
+        assertTrue(plus("video/HubPages.kt", "import app.tileshell.ui.components.OutlinedField as Box").isNotEmpty())
         // What was pasted written to a line.
         assertTrue(with("net/AndroidCredentialScreen.kt", "?.let { Diagnostics.add(tag, it) }", "?.let { Diagnostics.add(tag, \"\$it: \${clip.text()}\") }").isNotEmpty())
     }
