@@ -6,6 +6,7 @@ import android.content.Intent
 import android.os.Bundle
 import android.service.voice.VoiceInteractionService
 import app.tileshell.diag.Diagnostics
+import app.tileshell.process.LauncherCalls
 
 /** How Cortana was opened, which decides what the first frame shows. */
 enum class CortanaMode {
@@ -87,6 +88,10 @@ class CortanaService : VoiceInteractionService() {
          * Reminders pod); null is the mode's own first page.
          */
         fun open(context: Context, mode: CortanaMode, destination: CortanaDestinationKey? = null): Boolean {
+            // The session is this service's, and the service lives in the launcher's process: a Search key drawn in another
+            // of the shell's processes (the viewer other apps open, in `:photosedit` since phase 17's D3; Camera; the
+            // player) asks that process, where [instance] is.
+            if (!LauncherCalls.isLauncher(context)) return LauncherCalls.openCortana(context, mode, destination)
             val service = instance
             if (service == null || !ready || !roleHeld(context)) {
                 Diagnostics.add(

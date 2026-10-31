@@ -14,6 +14,10 @@ enum class ThemeMode { DARK, LIGHT }
 /** Q6: press feedback on Start tiles. W10M final = none (R3 A10, default). */
 enum class PressStyle { NONE, WP8_TILT, P4_PRESS }
 
+/**
+ * The Start + theme settings, as one value. Serializable because the launcher's process hands it, as it is now, to a
+ * window opening in another of the shell's processes (phase 17, D3: `process/LauncherCalls.refreshTheme`).
+ */
 data class StartTheme(
     val accent: Long = Palette.DEFAULT_ACCENT,
     val theme: ThemeMode = ThemeMode.DARK, // X21 approximation
@@ -62,7 +66,7 @@ data class StartTheme(
     val tessLens: String = ThemePresets.LENS_HAL,
     /** Phase 12 (T12-2): the keyboard's colours, DARK (as phase 05 built it) or LIGHT (phase 05's keyboard reads it). */
     val keyboardPalette: ThemeMode = ThemeMode.DARK,
-)
+) : java.io.Serializable
 
 /**
  * Phase 14 (Decisions "Settings"): which pods the pod bay shows, one switch each, default all On. The order is fixed
@@ -168,6 +172,15 @@ class ShellSettings private constructor(context: Context) {
         Diagnostics.add("settings", "start theme preset written: $next")
     }
 
+    /**
+     * Phase 17 (D3): in a process that is not the launcher's, the launcher's theme as it is now ([theme], read there by
+     * `process/LauncherCalls.refreshTheme`) becomes this process's copy. Nothing is written: the launcher's process is the
+     * theme's one writer.
+     */
+    fun adopt(theme: StartTheme) {
+        state.value = theme
+    }
+
     /** Phase 12 (T12-10): the original preset's picture variant — the picture and the variant key only. */
     fun applyVariant(variant: String, backgroundUri: String?) {
         prefs.edit().putString("background", backgroundUri).putString("theme_preset_variant", variant).apply()
@@ -179,5 +192,8 @@ class ShellSettings private constructor(context: Context) {
         @Volatile private var instance: ShellSettings? = null
         fun get(context: Context): ShellSettings =
             instance ?: synchronized(this) { instance ?: ShellSettings(context.applicationContext).also { instance = it } }
+
+        /** Whether this process has read the settings already (phase 17, D3: `process/ShellProcess.asksForTheme`). */
+        fun held(): Boolean = instance != null
     }
 }
