@@ -195,14 +195,23 @@ class ContentUriText private constructor(val text: String, val scheme: String?, 
  * frame's picker URIs) are listed and refused. A provider that is not forceUriPermissions took the manifest's word, or
  * the shortcut, at (2) (A2-F2, C2-L8): refused.
  *
- * WHAT THE LAUNCH GRANT LEAVES OPEN (verified in that source; nothing inside the activity can close it): an app that
- * cannot read library item X starts a helper through `startNextMatchingActivity`, with the grant flag, at a moment the
- * shell holds a NON-persisted grant for exactly X's text from somewhere else — another live viewer, player or capture
- * launched with X (that grant is owned by its activity until it goes), or (UNVERIFIED, not read in source) a clip the
- * shell read or another app's `grantUriPermission` to it. It is admitted: the viewer shows X read-only
- * in that app's task, the player plays it; a capture still needs (d1). On API 34 a system or root starter with such a
- * stale grant is admitted the same way (on API 35+ the launch answer already says "granted" for those two uids,
- * `checkContentUriPermissionFullUnlocked`).
+ * WHAT THE LAUNCH GRANT LEAVES OPEN — ACCEPTED by the owner, ruling "(a)" of 2026-11-01 (review/2026-10-31-phase17-d1-
+ * build.md F1, MEDIUM; read in android16-release source by the builder and the adversarial reviewer apart; not run on a
+ * device). The rule admits on a grant the shell HOLDS for X's text, not on one this launch made: no public API ties a
+ * grant to a launch (`UriPermission.getStrength` merges every owner's). An ordinary app that cannot read library item X
+ * starts its own activity with data X and no flag, then calls `startNextMatchingActivity` with FLAG_GRANT_READ: ATMS
+ * keeps the flags and starts the next match with `setActivityInfo` and no grant check (`ActivityStarter.execute` runs
+ * `resolveActivity`, where grants are checked, only when `activityInfo == null`); a package name that sorts just
+ * before `app.tileshell` makes the shell that next match. It is admitted whenever the shell holds a NON-persisted
+ * grant for exactly X's text from any of: (S1) another live viewer, player or capture launched with X (owned by its
+ * activity record until it goes); (S3) the notification listener, for a grantable URI in a posted notification;
+ * (S4) a photo-picker result not taken persistable (People's editor, Cortana, the probe page); (S5) ShortcutService's
+ * icon grants to the default launcher; (S6) another app's `grantUriPermission` to the shell. (S2, a clip the shell
+ * read, gives an attacker nothing it could not read itself.) Effect: the viewer shows X read-only in that app's task,
+ * the player plays it; nothing returns to that app unless the user taps Share and picks it. For a WRITE the same holds
+ * with S1 / S6 write grants only, and a capture still needs (d1). On API 34 a system or root starter with such a stale
+ * grant is admitted the same way (on API 35+ the launch answer already says "granted" for those two uids,
+ * `checkContentUriPermissionFullUnlocked`). Every candidate closure inside the app was refuted in the review.
  *
  * WRITE ([captureMayWrite]) — condition (d) of `CaptureOutputGuard`: BOTH of
  *  (d1) the RECIPIENT may write the URI: it owns the provider, or holds an explicit write grant for the URI, or (a

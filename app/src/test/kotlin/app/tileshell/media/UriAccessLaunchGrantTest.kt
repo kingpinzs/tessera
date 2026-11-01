@@ -16,9 +16,11 @@ import org.junit.Test
 
 /**
  * The owner's ruling D1 (a), 2026-10-31: a SHARED-LIBRARY item (a MediaStore `content://media/...` row) another app
- * opens "with" the viewer or the player, or names as the Camera's output, is admitted on the grant the platform gave
- * the shell for THAT launch ([UriAccessRules.launchGrant]) — and on nothing weaker. Every refusal the three trust
- * rounds put in place is pinned here too, so a change that over-admits fails a named test.
+ * opens "with" the viewer or the player, or names as the Camera's output, is admitted on a grant the shell HOLDS for
+ * that exact text, carried with the launch's own flag ([UriAccessRules.launchGrant]). The fake port cannot say where a
+ * held grant came from, so these tests cannot tell this launch's grant from a stale one: the accepted residual (the
+ * owner's ruling of 2026-11-01; UriAccess.kt "WHAT THE LAUNCH GRANT LEAVES OPEN") is by construction invisible here.
+ * Every refusal the three trust rounds put in place is pinned, so a change that over-admits fails a named test.
  */
 class UriAccessLaunchGrantTest {
     private val mediaRow = "content://media/external/images/media/41"
@@ -78,6 +80,22 @@ class UriAccessLaunchGrantTest {
         assertEquals("launch grant read: held", UriAccessRules.grantLine(READ, "held"))
         assertEquals("launch grant write: none held", UriAccessRules.grantLine(WRITE, "none held"))
         assertEquals("a grant from the launch", ReadWhy.LAUNCH_GRANT.word)
+    }
+
+    @Test
+    fun `READ a launch that names only a prefix of the item - as its data or a clip entry - refused`() {
+        // The D1 review's M01: the item must BE the launch's data or one of its clip entries, by its whole text.
+        val prefix = "content://media/external/images/media/4"
+        assertEquals(UriAccessRules.GRANT_NOT_IN_LAUNCH, grant(launched(data = prefix)))
+        assertEquals(ReadWhy.NONE, read(launched(data = prefix)).why)
+        assertEquals(UriAccessRules.GRANT_NOT_IN_LAUNCH, grant(launched(data = null, clip = listOf(prefix))))
+    }
+
+    @Test
+    fun `READ the item as a later clip entry - admitted, as the platform checks and grants every entry`() {
+        // The D1 review's M03: not only the first entry is the launch's.
+        val other = "content://media/external/images/media/7"
+        assertEquals(ReadWhy.LAUNCH_GRANT, read(launched(data = null, clip = listOf(other, mediaRow))).why)
     }
 
     @Test
