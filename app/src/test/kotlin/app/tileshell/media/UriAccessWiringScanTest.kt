@@ -56,6 +56,11 @@ class UriAccessWiringScanTest {
         "return ask { activity.initialCaller.checkContentUriPermission(Uri.parse(uri), modeFlag) } }",
         "override fun launchedFromUid(): Platform<Int> = ask { activity.launchedFromUid }",
         "override fun nameOfUid(uid: Int): Platform<String?> = ask { activity.packageManager.getNameForUid(uid) }",
+        // D1 (a), 2026-10-31: the launch intent the platform checked, and the grants the shell has persisted.
+        "override fun launchFlags(): Platform<Int> = ask { activity.intent.flags }",
+        "override fun launchData(): Platform<String?> = ask { activity.intent.data?.toString() }",
+        "override fun launchClipUris(): Platform<List<String>> = ask { activity.intent.clipData?.let { clip -> (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() } }.orEmpty() }",
+        "override fun persistedGrants(): Platform<List<String>> = ask { activity.contentResolver.persistedUriPermissions.map { it.uri.toString() } }",
         "private inline fun <T> ask(question: () -> T): Platform<T> = try { Platform.Said(question()) } catch (e: Throwable) { Platform.Threw(e.javaClass.simpleName) }",
         "private companion object { const val BELOW_API_35 = \"BelowApi35\" } }",
     ).joinToString(" ")
@@ -115,6 +120,19 @@ class UriAccessWiringScanTest {
         assertTrue(with("override fun shellUid(): Int = Process.myUid()", "override fun shellUid(): Int = activity.launchedFromUid").isNotEmpty())
         assertTrue(with("override val apiLevel: Int get() = Build.VERSION.SDK_INT", "override val apiLevel: Int get() = 34").isNotEmpty())
         assertTrue(with("it.forceUriPermissions", "true").isNotEmpty())
+    }
+
+    @Test fun `D1 a port whose launch-intent or persisted-grant reads fail open, are made up or read something else is caught`() {
+        val port = read("media/AndroidUriAccess.kt")
+        fun with(old: String, new: String) = portProblems(mutate(port, old, new))
+        // A grant flag the launch did not carry, a made-up data, a ClipData read that drops what it holds.
+        assertTrue(with("ask { activity.intent.flags }", "ask { activity.intent.flags or 1 }").isNotEmpty())
+        assertTrue(with("ask { activity.intent.flags }", "Platform.Said(3)").isNotEmpty())
+        assertTrue(with("ask { activity.intent.data?.toString() }", "ask { activity.referrer?.toString() }").isNotEmpty())
+        assertTrue(with("ask { activity.intent.clipData?.let { clip -> (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() } }.orEmpty() }", "ask { emptyList<String>() }").isNotEmpty())
+        // The shell's persisted grants reported as none, or read in a way that cannot fail closed.
+        assertTrue(with("ask { activity.contentResolver.persistedUriPermissions.map { it.uri.toString() } }", "Platform.Said(emptyList())").isNotEmpty())
+        assertTrue(with("ask { activity.contentResolver.persistedUriPermissions.map { it.uri.toString() } }", "ask { runCatching { activity.contentResolver.persistedUriPermissions.map { it.uri.toString() } }.getOrDefault(emptyList()) }").isNotEmpty())
     }
 
     @Test fun `only the port asks the platform who started an activity and who may reach a URI`() {

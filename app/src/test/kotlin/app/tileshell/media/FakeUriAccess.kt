@@ -21,8 +21,17 @@ class FakeUriAccess(
     /** `getInitialCaller().checkContentUriPermission`: (uri, mode flag) → the result code, or a throw. */
     val launchAnswer: (String, Int) -> Platform<Int> = { _, _ -> Platform.Said(DENIED) },
     val names: Map<Int, String> = mapOf(CALLER to "com.caller", OTHER to "com.other", SHELL to "app.tileshell"),
+    /** The launch intent: its flags (0 = it asked for no grant), its data and its ClipData's URIs, as text. */
+    val launchFlags: Platform<Int> = Platform.Said(0),
+    val launchData: Platform<String?> = Platform.Said(null),
+    val launchClip: Platform<List<String>> = Platform.Said(emptyList()),
+    /** `getPersistedUriPermissions()`: the URIs of the grants the shell has persisted. */
+    val persisted: Platform<List<String>> = Platform.Said(emptyList()),
 ) : UriAccessPort {
     val asked = mutableListOf<String>()
+
+    /** The reads of the launch intent itself (kept apart from [asked], the questions about who may reach a URI). */
+    val launchReads = mutableListOf<String>()
 
     override fun shellUid(): Int = shell
     override fun uidOf(packageName: String): Platform<Int> {
@@ -38,6 +47,10 @@ class FakeUriAccess(
     override fun launchAnswer(uri: String, modeFlag: Int): Platform<Int> { asked += "launch $uri $modeFlag"; return launchAnswer.invoke(uri, modeFlag) }
     override fun launchedFromUid(): Platform<Int> = launchedFrom
     override fun nameOfUid(uid: Int): Platform<String?> { asked += "name $uid"; return Platform.Said(names[uid]) }
+    override fun launchFlags(): Platform<Int> { launchReads += "flags"; return launchFlags }
+    override fun launchData(): Platform<String?> { launchReads += "data"; return launchData }
+    override fun launchClipUris(): Platform<List<String>> { launchReads += "clip"; return launchClip }
+    override fun persistedGrants(): Platform<List<String>> { asked += "persisted"; return persisted }
 
     companion object {
         const val CALLER = 10123

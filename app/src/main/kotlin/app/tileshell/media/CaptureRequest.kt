@@ -80,7 +80,8 @@ object CaptureRequestRule {
                     "startedForResult=${caller != null} clipHoldsOutput=${clipUris.any { it == output.text }} " +
                     "writeGrantFlag=${(flags and CaptureOutputGuard.FLAG_GRANT_WRITE) != 0} " +
                     "ownAuthority=${own.any { it.equals(output.authority.orEmpty().substringAfterLast('@'), ignoreCase = true) }} callerMayWrite=${write.allowed} " +
-                    "recipientMayWrite=${write.recipientMayWrite} starterAtLaunch=${write.starter}"
+                    "recipientMayWrite=${write.recipientMayWrite} starterAtLaunch=${write.starter}" +
+                    (write.launchGrant?.let { " launchGrant=$it" } ?: "")
                 val after = write.forwardedFromUid?.let { startedBy ->
                     val name = (access.nameOfUid(startedBy) as? Platform.Said)?.value
                     listOf("capture request forwarded: started by ${boundedName(name)}, result to ${boundedName(caller)}")
