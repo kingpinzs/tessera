@@ -6,7 +6,9 @@ import android.content.ContentValues
 import android.content.Context
 import android.database.Cursor
 import android.net.Uri
+import android.os.Binder
 import android.os.Bundle
+import android.os.Process
 import app.tileshell.cortana.CortanaDestinationKey
 import app.tileshell.cortana.CortanaMode
 import app.tileshell.cortana.CortanaService
@@ -71,14 +73,18 @@ object LauncherCalls {
 
 /**
  * [LauncherCalls]' answers, in the launcher's process (no `android:process`; `photos/ViewerProcessManifestTest` holds
- * that, since a provider in another process would ask itself). Not exported: only the shell's own processes reach it.
- * What it accepts is [ShellProcess]'s answer: the background only as the copy of one row id that exists, Cortana only by
+ * that, since a provider in another process would ask itself). Not exported: only the shell's own processes reach it,
+ * and its first statement refuses any caller whose uid is not the shell's ([ShellProcess.answersCaller]). What it accepts is [ShellProcess]'s answer: the background only as the copy of one row id that exists, Cortana only by
  * a mode's and a page's names; any other method is no answer.
  */
 class LauncherCallsProvider : ContentProvider() {
     override fun onCreate(): Boolean = true
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+        if (!ShellProcess.answersCaller(Binder.getCallingUid(), Process.myUid())) {
+            Diagnostics.add("app", "launcher call refused: the caller is not this app")
+            return null
+        }
         val ctx = context ?: return null
         return when (method) {
             LauncherCalls.THEME -> Bundle().apply { putSerializable(LauncherCalls.KEY_THEME, ShellSettings.get(ctx).theme.value) }

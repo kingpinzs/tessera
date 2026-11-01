@@ -22,6 +22,14 @@ object ShellProcess {
     fun isLauncher(processName: String?, packageName: String): Boolean = processName == packageName
 
     /**
+     * Whether [LauncherCallsProvider] answers a call at all (D3 fix round, L1): only from the shell's own uid, [ownUid]
+     * (`Process.myUid()`), which every one of its processes runs as. The provider is not exported, but Android still
+     * lets the system and root reach it; anything whose [callingUid] (`Binder.getCallingUid()`) is not the shell's is
+     * refused before the call is read.
+     */
+    fun answersCaller(callingUid: Int, ownUid: Int): Boolean = callingUid == ownUid
+
+    /**
      * Whether a window opening in this process asks the launcher's for the theme first: only outside the launcher's
      * process, and only when this process already [holdsCopy] — a fresh process reads the file as it is then, so the
      * first open asks nothing more than the window needs.

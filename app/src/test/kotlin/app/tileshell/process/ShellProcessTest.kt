@@ -38,6 +38,15 @@ class ShellProcessTest {
         }
     }
 
+    @Test fun `the launcher's process answers a call from the shell's own uid and from nothing else`() {
+        val own = 10_123
+        assertTrue(ShellProcess.answersCaller(own, own))
+        // Another app (an app id one off, or another user's copy of this app), adb's shell, the system, root.
+        for (other in listOf(own + 1, own - 1, 1_010_123, 2_000, 1_000, 0, -1)) {
+            assertFalse("$other", ShellProcess.answersCaller(other, own))
+        }
+    }
+
     @Test fun `a Cortana open from another process names a mode and at most a page, by their names, or is refused`() {
         assertEquals(CortanaMode.HOME to null, ShellProcess.cortanaOpen("HOME", null))
         assertEquals(CortanaMode.LISTENING to null, ShellProcess.cortanaOpen("LISTENING", null))

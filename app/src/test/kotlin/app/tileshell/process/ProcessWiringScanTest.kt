@@ -78,6 +78,19 @@ class ProcessWiringScanTest {
         return problems
     }
 
+    /** D3 fix round (L1): the provider's first statement refuses any caller whose uid is not the app's own ([ShellProcess.answersCaller]). */
+    private fun callerProblems(launcherCalls: String): List<String> {
+        val problems = mutableListOf<String>()
+        val call = body(launcherCalls, "override fun call(method: String, arg: String?, extras: Bundle?): Bundle?")
+        val refusal = "{ if (!ShellProcess.answersCaller(Binder.getCallingUid(), Process.myUid())) { Diagnostics.add(\"app\", \"launcher call refused: the caller is not this app\") return null } val ctx = context ?: return null "
+        if (!call.startsWith(refusal)) problems += "the launcher's process reads a call before it refuses a caller that is not the shell"
+        return problems
+    }
+
+    @Test fun `the launcher's process refuses a call from anything but the shell, before it reads the call`() {
+        assertEquals(emptyList<String>(), callerProblems(calls))
+    }
+
     @Test fun `the viewer holds the photosedit ring for its process and re-reads the theme before its first frame`() {
         assertEquals(emptyList<String>(), viewerProblems(viewer))
         assertEquals(emptyList<String>(), ringProblems(ring))
@@ -115,5 +128,10 @@ class ProcessWiringScanTest {
         assertTrue(processProblems(mutate(calls, "ShellProcess.isLauncher(Application.getProcessName(), context.packageName)", "true")).isNotEmpty())
         assertTrue(processProblems(mutate(calls, "ShellProcess.asksForTheme(isLauncher(context), ShellSettings.held())", "ShellProcess.asksForTheme(false, ShellSettings.held())")).isNotEmpty())
         assertTrue(processProblems(mutate(calls, "ShellSettings.get(context).adopt(theme)", "ShellSettings.get(context).update { theme }")).isNotEmpty())
+        // A caller let through: the refusal dropped, decided on two copies of this process's own uid, or after the call is read.
+        val refusal = "if (!ShellProcess.answersCaller(Binder.getCallingUid(), Process.myUid())) { Diagnostics.add(\"app\", \"launcher call refused: the caller is not this app\") return null } "
+        assertTrue(callerProblems(mutate(calls, refusal, "")).isNotEmpty())
+        assertTrue(callerProblems(mutate(calls, "ShellProcess.answersCaller(Binder.getCallingUid(), Process.myUid())", "ShellProcess.answersCaller(Process.myUid(), Process.myUid())")).isNotEmpty())
+        assertTrue(callerProblems(mutate(calls, "${refusal}val ctx = context ?: return null ", "val ctx = context ?: return null $refusal")).isNotEmpty())
     }
 }

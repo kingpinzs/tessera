@@ -99,5 +99,14 @@ class ViewerProcessManifestTest {
         assertEquals("false", calls.attr("exported"))
         assertEquals("app.tileshell.launchercalls", calls.attr("authorities"))
         assertTrue("no permission opens it to another app", calls.attr("permission").isEmpty() && calls.attr("readPermission").isEmpty() && calls.attr("writePermission").isEmpty())
+        // D3 fix round (L1): one instance, the launcher's — `multiprocess` would build one in each caller's process, which
+        // would answer from that process's own copy — and no URI grant through it.
+        assertEquals("", calls.attr("multiprocess"))
+        assertEquals("", calls.attr("grantUriPermissions"))
+        // Nothing else on it: these three attributes and no child (no grant-uri-permission, no path-permission).
+        val attributes = (0 until calls.attributes.length).map { calls.attributes.item(it) }
+            .map { (if (it.namespaceURI == androidNs) "android:" else "${it.namespaceURI}:") + it.localName }.toSet()
+        assertEquals(setOf("android:name", "android:authorities", "android:exported"), attributes)
+        assertEquals(emptyList<String>(), (0 until calls.childNodes.length).map { calls.childNodes.item(it) }.filterIsInstance<Element>().map { it.tagName })
     }
 }
