@@ -40,7 +40,8 @@ object LauncherCalls {
     /**
      * Before a window of this process draws: the theme the launcher's process holds now, taken as this process's copy —
      * when [ShellProcess.asksForTheme] says so (a warm process outside the launcher's). Nothing is written. Main thread:
-     * one call to a process that is running whenever Start is.
+     * one call to a process that is running whenever Start is. It BLOCKS: the binder call holds this thread until the
+     * launcher's process answers (or the call fails), so the window's first frame waits on it.
      */
     fun refreshTheme(context: Context) {
         if (!ShellProcess.asksForTheme(isLauncher(context), ShellSettings.held())) return

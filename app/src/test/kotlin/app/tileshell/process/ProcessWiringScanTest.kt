@@ -15,7 +15,9 @@ import org.junit.Test
  *  - its lines: the `:photosedit` ring is held for the process's life (read on Diagnostics while it shows and after);
  *  - its theme: re-read from the launcher's process when the process is warm, before the first frame;
  *  - Set as Start background: the theme's one writer is the launcher's process;
- *  - the Search key: Cortana's session is the launcher's process's to show.
+ *  - the Search key: Cortana's session is the launcher's process's to show;
+ *  - and (D3 fix round) the code those call sites call, whole: the provider's caller refusal, the Search key's
+ *    hand-off with its role-notice fallback, the background answer read, the held copy, the copy adopted unwritten.
  */
 class ProcessWiringScanTest {
     private val viewer = SourceScan.read("photos/ViewerActivity.kt")
@@ -23,6 +25,7 @@ class ProcessWiringScanTest {
     private val actions = SourceScan.read("photos/PhotoActions.kt")
     private val calls = SourceScan.read("process/LauncherCalls.kt")
     private val cortana = SourceScan.read("cortana/CortanaService.kt")
+    private val settings = SourceScan.read("prefs/ShellSettings.kt")
 
     private fun viewerProblems(activity: String): List<String> {
         val problems = mutableListOf<String>()
@@ -105,6 +108,24 @@ class ProcessWiringScanTest {
         return problems
     }
 
+    /**
+     * D3 fix round (L2): the code the call sites above call, held to its exact form, since Android cannot run it here —
+     * Set as Start background reports the launcher's own answer (m11), a process holds a copy once it has read the
+     * settings (m10: inverted, a warm process would never ask), and the copy is adopted, never written (m16: written,
+     * `:photosedit` would rewrite the whole `start_theme` file from its older copy).
+     */
+    private fun calledProblems(launcherCalls: String, shellSettings: String): List<String> {
+        val problems = mutableListOf<String>()
+        if (count(launcherCalls, "fun setBackground(context: Context, id: Long): Boolean = ask(context, BACKGROUND, id.toString()) { it.getBoolean(KEY_DONE) } == true") != 1) problems += "Set as Start background reports other than the launcher's answer"
+        if (count(shellSettings, "fun held(): Boolean = instance != null") != 1) problems += "held() is not whether this process has read the settings"
+        if (body(shellSettings, "fun adopt(theme: StartTheme)") != "{ state.value = theme }") problems += "adopt does more than take the launcher's theme as this process's copy"
+        return problems
+    }
+
+    @Test fun `what the call sites call keeps its one form - the answer read, the copy held, the copy adopted unwritten`() {
+        assertEquals(emptyList<String>(), calledProblems(calls, settings))
+    }
+
     @Test fun `a Search key hand-off the launcher's process does not answer falls back to the role notice`() {
         assertEquals(emptyList<String>(), handOffProblems(calls))
     }
@@ -159,5 +180,9 @@ class ProcessWiringScanTest {
         assertTrue(handOffProblems(mutate(calls, "if (ShellProcess.noticeHere(answer)) context.startActivity(Intent(context, CortanaRoleNoticeActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) ", "")).isNotEmpty())
         assertTrue(handOffProblems(mutate(calls, "if (ShellProcess.noticeHere(answer))", "if (false)")).isNotEmpty())
         assertTrue(handOffProblems(mutate(calls, "val extras = destination?.let { Bundle().apply { putString(KEY_DESTINATION, it.name) } } val answer", "if (Application.getProcessName()?.endsWith(\":photosedit\") == true) return false val extras = destination?.let { Bundle().apply { putString(KEY_DESTINATION, it.name) } } val answer")).isNotEmpty())
+        // The launcher's answer ignored (m11), the held copy inverted (m10), the copy written through update (m16).
+        assertTrue(calledProblems(mutate(calls, "ask(context, BACKGROUND, id.toString()) { it.getBoolean(KEY_DONE) }", "ask(context, BACKGROUND, id.toString()) { true }"), settings).isNotEmpty())
+        assertTrue(calledProblems(calls, mutate(settings, "fun held(): Boolean = instance != null", "fun held(): Boolean = instance == null")).isNotEmpty())
+        assertTrue(calledProblems(calls, mutate(settings, "fun adopt(theme: StartTheme) { state.value = theme }", "fun adopt(theme: StartTheme) { update { theme } }")).isNotEmpty())
     }
 }
