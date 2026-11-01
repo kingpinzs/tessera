@@ -51,6 +51,7 @@ import androidx.compose.ui.unit.sp
 import app.tileshell.brand.Brand
 import app.tileshell.brand.Glyph
 import app.tileshell.diag.Diagnostics
+import app.tileshell.net.SecurePage
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.OutlinedField
 import app.tileshell.ui.tokens.CapMetrics
@@ -88,9 +89,15 @@ private const val FIELD_GAP = 10.6f
  *
  * Phase 20 (r3 D4): [tag] is the diagnostics tag the sign-in's lines are written under — `"video"` here, `"music"`
  * when the Music app shows this form for the same server ([MediaServer]'s own `tag`). Nothing else differs.
+ *
+ * The owner's ruling D2 (a): while the form shows — the off-home-network prompt included — its window, the hub's or
+ * Music's, is kept from screen capture and the Recents preview ([SecurePage]), and a password pasted into its field is
+ * cleared from the clipboard if the clipboard still holds it (the field's `secret`). The host and user name fields are
+ * plain ones and never read the clipboard.
  */
 @Composable
 fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?, tag: String = "video", onConnected: () -> Unit) {
+    SecurePage(tag)
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val focus = LocalFocusManager.current
@@ -158,7 +165,7 @@ fun AddServerForm(prefillHost: String, prefillUser: String, firstError: String?,
         BasicText("User name", Modifier.padding(top = FIELD_GAP.dp, bottom = 6.dp), style = ShellType.body.copy(color = Color.White))
         OutlinedField(user, { user = it }, "server_user", Modifier.fillMaxWidth(), height = FIELD_HEIGHT.dp, maxLength = 200, imeAction = ImeAction.Next)
         BasicText("Password", Modifier.padding(top = FIELD_GAP.dp, bottom = 6.dp), style = ShellType.body.copy(color = Color.White))
-        OutlinedField(password, { password = it }, "server_password", Modifier.fillMaxWidth(), height = FIELD_HEIGHT.dp, maxLength = 500, onImeAction = { submit() }, secret = true)
+        OutlinedField(password, { password = it }, "server_password", Modifier.fillMaxWidth(), height = FIELD_HEIGHT.dp, maxLength = 500, linesTag = tag, onImeAction = { submit() }, secret = true)
         error?.let { BasicText(it, Modifier.padding(top = 12.dp).testTag("server_error"), style = ShellType.body.copy(color = Color.White)) }
         Row(Modifier.padding(top = 16.dp)) {
             HubButton(if (busy) "Connecting…" else "Connect", "server_connect", enabled = !busy && host.isNotBlank()) { submit() }
