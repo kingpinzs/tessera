@@ -666,9 +666,12 @@
           own, so it runs in its caller's task and is not an app in the catalog (L14-2). On the exported allow-list:
           the intent only names the one picture; it is read with the shell's identity, so another app's URI is shown
           only when the platform says that app could read it itself, and then read-only (photos/ViewerRules.kt).
+          In the editor's process, not the launcher's (the owner's ruling D3 (a), 2026-10-31): a hostile picture is
+          decoded where a crash ends only `:photosedit`, never the process that draws Start.
         -->
         <activity
             android:name=".photos.ViewerActivity"
+            android:process=":photosedit"
             android:exported="true"
             android:label="@string/photos_name"
             android:icon="@drawable/ic_photos"
@@ -681,7 +684,10 @@
             </intent-filter>
         </activity>
 
-        <!-- Photos' editor and video trim, in their own process (r3 D8). Not exported: only Photos starts it. -->
+        <!--
+          Photos' editor and video trim, in their own process (r3 D8), which the viewer above shares (D3). Not exported:
+          only Photos and the viewer start it.
+        -->
         <activity
             android:name=".photos.EditActivity"
             android:process=":photosedit"
@@ -692,6 +698,16 @@
         <service
             android:name=".photos.PhotosEditDumpService"
             android:process=":photosedit"
+            android:exported="false" />
+
+        <!--
+          What only the launcher's process can do, asked from the shell's other processes (D3): the theme as it is now,
+          Start's background pointed at Photos' copy, Cortana opened (process/LauncherCalls.kt). In the launcher's
+          process, so no android:process. Not exported: only this app calls it.
+        -->
+        <provider
+            android:name=".process.LauncherCallsProvider"
+            android:authorities="app.tileshell.launchercalls"
             android:exported="false" />
 
         <!--
