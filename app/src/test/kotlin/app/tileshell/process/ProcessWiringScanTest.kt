@@ -87,6 +87,28 @@ class ProcessWiringScanTest {
         return problems
     }
 
+    /**
+     * D3 fix round (the hand-off note, and L2's m05b): the Search key's hand-off, exactly — ask the launcher's process,
+     * and when it gives no answer (the call failed or came back empty) show the role notice here, the form the Search
+     * key had in another process before D3 ([ShellProcess.noticeHere]). Pinned whole: nothing may be added before the ask.
+     */
+    private fun handOffProblems(launcherCalls: String): List<String> {
+        val problems = mutableListOf<String>()
+        val open = body(launcherCalls, "fun openCortana(context: Context, mode: CortanaMode, destination: CortanaDestinationKey?): Boolean")
+        val expected = "{ val extras = destination?.let { Bundle().apply { putString(KEY_DESTINATION, it.name) } } " +
+            "val answer = ask(context, CORTANA, mode.name, extras) { it.getBoolean(KEY_DONE) } " +
+            "val said = when (answer) { true -> \"shown\"; false -> \"not shown\"; null -> \"no answer, so the role notice is shown here\" } " +
+            "Diagnostics.add(\"cortana\", \"open(\$mode\${destination?.let { \", \$it\" } ?: \"\"}): asked the launcher's process: \$said\") " +
+            "if (ShellProcess.noticeHere(answer)) context.startActivity(Intent(context, CortanaRoleNoticeActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) " +
+            "return answer == true }"
+        if (open != expected) problems += "the Search key's hand-off is not: ask the launcher's process, and with no answer show the role notice here"
+        return problems
+    }
+
+    @Test fun `a Search key hand-off the launcher's process does not answer falls back to the role notice`() {
+        assertEquals(emptyList<String>(), handOffProblems(calls))
+    }
+
     @Test fun `the launcher's process refuses a call from anything but the shell, before it reads the call`() {
         assertEquals(emptyList<String>(), callerProblems(calls))
     }
@@ -133,5 +155,9 @@ class ProcessWiringScanTest {
         assertTrue(callerProblems(mutate(calls, refusal, "")).isNotEmpty())
         assertTrue(callerProblems(mutate(calls, "ShellProcess.answersCaller(Binder.getCallingUid(), Process.myUid())", "ShellProcess.answersCaller(Process.myUid(), Process.myUid())")).isNotEmpty())
         assertTrue(callerProblems(mutate(calls, "${refusal}val ctx = context ?: return null ", "val ctx = context ?: return null $refusal")).isNotEmpty())
+        // The hand-off silent again (no notice, or the rule bypassed), or refused in one process before it asks (m05b).
+        assertTrue(handOffProblems(mutate(calls, "if (ShellProcess.noticeHere(answer)) context.startActivity(Intent(context, CortanaRoleNoticeActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)) ", "")).isNotEmpty())
+        assertTrue(handOffProblems(mutate(calls, "if (ShellProcess.noticeHere(answer))", "if (false)")).isNotEmpty())
+        assertTrue(handOffProblems(mutate(calls, "val extras = destination?.let { Bundle().apply { putString(KEY_DESTINATION, it.name) } } val answer", "if (Application.getProcessName()?.endsWith(\":photosedit\") == true) return false val extras = destination?.let { Bundle().apply { putString(KEY_DESTINATION, it.name) } } val answer")).isNotEmpty())
     }
 }

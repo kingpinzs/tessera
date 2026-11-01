@@ -4,6 +4,7 @@ import android.app.Application
 import android.content.ContentProvider
 import android.content.ContentValues
 import android.content.Context
+import android.content.Intent
 import android.database.Cursor
 import android.net.Uri
 import android.os.Binder
@@ -11,6 +12,7 @@ import android.os.Bundle
 import android.os.Process
 import app.tileshell.cortana.CortanaDestinationKey
 import app.tileshell.cortana.CortanaMode
+import app.tileshell.cortana.CortanaRoleNoticeActivity
 import app.tileshell.cortana.CortanaService
 import app.tileshell.diag.Diagnostics
 import app.tileshell.prefs.ShellSettings
@@ -55,12 +57,17 @@ object LauncherCalls {
     /** Points Start's background at Photos' copy of row [id] (`files/backgrounds/<id>.jpg`, already written). True when it took it. */
     fun setBackground(context: Context, id: Long): Boolean = ask(context, BACKGROUND, id.toString()) { it.getBoolean(KEY_DONE) } == true
 
-    /** `CortanaService.open` from another process: true when the launcher's process showed the session. */
+    /**
+     * `CortanaService.open` from another process: true when the launcher's process showed the session. With no answer
+     * from it ([ShellProcess.noticeHere]) this process shows the role notice itself, as the Search key did here before D3.
+     */
     fun openCortana(context: Context, mode: CortanaMode, destination: CortanaDestinationKey?): Boolean {
         val extras = destination?.let { Bundle().apply { putString(KEY_DESTINATION, it.name) } }
-        val shown = ask(context, CORTANA, mode.name, extras) { it.getBoolean(KEY_DONE) } == true
-        Diagnostics.add("cortana", "open($mode${destination?.let { ", $it" } ?: ""}): asked the launcher's process: ${if (shown) "shown" else "not shown"}")
-        return shown
+        val answer = ask(context, CORTANA, mode.name, extras) { it.getBoolean(KEY_DONE) }
+        val said = when (answer) { true -> "shown"; false -> "not shown"; null -> "no answer, so the role notice is shown here" }
+        Diagnostics.add("cortana", "open($mode${destination?.let { ", $it" } ?: ""}): asked the launcher's process: $said")
+        if (ShellProcess.noticeHere(answer)) context.startActivity(Intent(context, CortanaRoleNoticeActivity::class.java).addFlags(Intent.FLAG_ACTIVITY_NEW_TASK))
+        return answer == true
     }
 
     /** One call and the reading of its answer, both inside the guard: a call or an answer that throws is no answer. */

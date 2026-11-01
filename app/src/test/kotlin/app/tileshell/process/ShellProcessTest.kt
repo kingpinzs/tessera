@@ -47,6 +47,14 @@ class ShellProcessTest {
         }
     }
 
+    @Test fun `the Search key in another process shows the role notice itself only when the launcher's process gave no answer`() {
+        // The call failed (the launcher's process unreachable) or came back empty: the notice, as before D3, not nothing.
+        assertTrue(ShellProcess.noticeHere(null))
+        // Shown there; or answered "not shown", where the launcher's own CortanaService.open showed the notice already.
+        assertFalse(ShellProcess.noticeHere(true))
+        assertFalse(ShellProcess.noticeHere(false))
+    }
+
     @Test fun `a Cortana open from another process names a mode and at most a page, by their names, or is refused`() {
         assertEquals(CortanaMode.HOME to null, ShellProcess.cortanaOpen("HOME", null))
         assertEquals(CortanaMode.LISTENING to null, ShellProcess.cortanaOpen("LISTENING", null))

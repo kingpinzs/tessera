@@ -44,6 +44,15 @@ object ShellProcess {
     fun backgroundCopy(id: String?): String? =
         id?.takeIf { it.length in 1..19 && it.all { c -> c in '0'..'9' } }?.let { "backgrounds/$it.jpg" }
 
+    /**
+     * Whether the Search key in another process shows the role notice itself after asking the launcher's to open Cortana
+     * (D3 fix round): only when the launcher's process gave no [answer] — the call failed (that process unreachable) or
+     * came back empty — so the key is never silent, and shows what it showed outside the launcher's process before D3.
+     * An answer, shown or not, needs nothing more here: the launcher's `CortanaService.open` shows the session or its
+     * own notice.
+     */
+    fun noticeHere(answer: Boolean?): Boolean = answer == null
+
     /** The Cortana open another process asked for: a [CortanaMode] and at most one [CortanaDestinationKey], by name. Null = refused. */
     fun cortanaOpen(mode: String?, destination: String?): Pair<CortanaMode, CortanaDestinationKey?>? {
         val m = CortanaMode.entries.firstOrNull { it.name == mode } ?: return null
