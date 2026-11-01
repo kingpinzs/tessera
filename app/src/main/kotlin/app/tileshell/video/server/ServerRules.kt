@@ -92,7 +92,7 @@ object ServerRules {
             portText = if (colon >= 0) text.substring(colon + 1) else null
             if (!HOST_NAME.matches(host)) return null
         }
-        val typedPort = portText?.let { p -> p.toIntOrNull()?.takeIf { it in 1..65535 && p.all(Char::isDigit) } ?: return null }
+        val typedPort = portText?.let { p -> p.toIntOrNull()?.takeIf { it in 1..65535 && p.all { c -> c in '0'..'9' } } ?: return null }
         val port = typedPort ?: if (scheme == "http") DEFAULT_HTTP_PORT else null
         val shownHost = if (host.contains(':')) "[$host]" else host.lowercase(Locale.ROOT)
         val label = if (port != null) "$shownHost:$port" else shownHost
@@ -105,16 +105,20 @@ object ServerRules {
      * names — and so the emulator's host 10.0.2.2. A public name, a public IPv4 address and a global IPv6 address are
      * not. Anything that is not a strict dotted quad or a recognised form counts as a public name, so an odd spelling
      * of an address ("127.1", "0x7f.0.0.1", a decimal integer) is asked about rather than trusted.
+     *
+     * Ledger L20-1 (phase 20's review, R20-O1; the owner's ruling (a), 2026-10-31): the unspecified address (`0.0.0.0`,
+     * `::`) is this phone, so private; a strict IPv6 literal is read whole, so every spelling of loopback
+     * (`0:0:0:0:0:0:0:1`, `0::1`) is `::1`, and an IPv4-mapped (`::ffff:a.b.c.d`, also in hex) or IPv4-compatible
+     * (`::a.b.c.d`) address is judged by its IPv4 part — `::ffff:10.0.0.1` private, `::ffff:8.8.8.8` public. Only
+     * `0.0.0.0` itself of 0.0.0.0/8 is private. An IPv6 spelling the strict reading refuses keeps the first-group rule.
      */
     fun isPrivate(host: String): Boolean {
         val h = host.trim().trim('[', ']').lowercase(Locale.ROOT).trimEnd('.')
         if (h == "localhost" || h.endsWith(".localhost")) return true
         if (h.endsWith(".local") && h.length > ".local".length) return true
-        ipv4(h)?.let { (a, b) ->
-            return a == 10 || a == 127 || (a == 172 && b in 16..31) || (a == 192 && b == 168) || (a == 169 && b == 254)
-        }
+        ipv4(h)?.let { return privateV4(it) }
         if (h.contains(':')) {
-            if (h == "::1") return true
+            ipv6(h)?.let { return privateV6(it) }
             val first = h.substringBefore(':').toIntOrNull(16) ?: return false
             if (h.startsWith("::")) return false
             return (first and 0xffc0) == 0xfe80 || (first and 0xfe00) == 0xfc00
@@ -122,13 +126,66 @@ object ServerRules {
         return false
     }
 
-    /** The first two octets of a strict dotted quad (four decimal parts, 0–255, no leading zeros), else null. */
-    private fun ipv4(h: String): Pair<Int, Int>? {
+    /** RFC 1918, loopback, link-local, and the unspecified address `0.0.0.0` (this phone) — of four octets. */
+    private fun privateV4(q: IntArray): Boolean {
+        val (a, b) = q[0] to q[1]
+        return a == 10 || a == 127 || (a == 172 && b in 16..31) || (a == 192 && b == 168) || (a == 169 && b == 254) || q.all { it == 0 }
+    }
+
+    /**
+     * Of eight groups: an IPv4-mapped (`::ffff:0:0/96`) or -compatible (`::/96`) address by its IPv4 part — which makes
+     * `::` the unspecified address — `::1`, link-local fe80::/10 and unique-local fc00::/7.
+     */
+    private fun privateV6(g: IntArray): Boolean {
+        if ((0..4).all { g[it] == 0 } && (g[5] == 0xffff || g[5] == 0)) {
+            val v4 = intArrayOf(g[6] shr 8, g[6] and 0xff, g[7] shr 8, g[7] and 0xff)
+            if (privateV4(v4)) return true
+            if (g[5] == 0 && g[6] == 0 && g[7] == 1) return true
+        }
+        return (g[0] and 0xffc0) == 0xfe80 || (g[0] and 0xfe00) == 0xfc00
+    }
+
+    /**
+     * The four octets of a strict dotted quad (four decimal parts of ASCII digits, 0–255, no leading zeros), else null.
+     * ASCII only (the L20-1 review): `Char.isDigit` and `toInt` also take fullwidth, Arabic-Indic and Devanagari digits.
+     */
+    private fun ipv4(h: String): IntArray? {
         val parts = h.split('.')
         if (parts.size != 4) return null
-        val n = parts.map { p -> if (p.isEmpty() || p.length > 3 || !p.all(Char::isDigit) || (p.length > 1 && p[0] == '0')) return null else p.toInt() }
+        val n = parts.map { p -> if (p.isEmpty() || p.length > 3 || !p.all { it in '0'..'9' } || (p.length > 1 && p[0] == '0')) return null else p.toInt() }
         if (n.any { it > 255 }) return null
-        return n[0] to n[1]
+        return n.toIntArray()
+    }
+
+    /**
+     * The eight groups of a strict IPv6 literal, else null: hex groups of one to four ASCII digits, at most one `::`
+     * (standing for one group or more), and a strict dotted quad allowed only as the last 32 bits. No zone index.
+     */
+    private fun ipv6(h: String): IntArray? {
+        val halves = h.split("::")
+        if (halves.size > 2) return null
+        fun groups(s: String, quadLast: Boolean): List<Int>? {
+            if (s.isEmpty()) return emptyList()
+            val parts = s.split(':')
+            val out = ArrayList<Int>()
+            for ((i, p) in parts.withIndex()) {
+                if (quadLast && i == parts.lastIndex && '.' in p) {
+                    val q = ipv4(p) ?: return null
+                    out += (q[0] shl 8) or q[1]
+                    out += (q[2] shl 8) or q[3]
+                } else if (p.length in 1..4 && p.all { it in '0'..'9' || it in 'a'..'f' }) {
+                    out += p.toInt(16)
+                } else {
+                    return null
+                }
+            }
+            return out
+        }
+        if (halves.size == 1) return groups(h, quadLast = true)?.takeIf { it.size == 8 }?.toIntArray()
+        val head = groups(halves[0], quadLast = false) ?: return null
+        val tail = groups(halves[1], quadLast = true) ?: return null
+        if (head.size + tail.size > 7) return null
+        return (head + List(8 - head.size - tail.size) { 0 } + tail).toIntArray()
     }
 
     /** C-16 (5): a sign-in over plain http to an address that is not private asks first, and sends nothing until Continue. */
