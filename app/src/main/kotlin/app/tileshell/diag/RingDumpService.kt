@@ -22,7 +22,9 @@ import java.util.concurrent.TimeUnit
  *  - [RemoteRings.read] from the launcher's process — Settings > Diagnostics, so a phone row needs no adb (r3 V15).
  *
  * The process's activities bind it while they live ([RemoteRings.hold]), so it exists whenever there is a ring worth
- * reading. Not exported: only the shell binds it.
+ * reading; the viewer other apps open binds `:photosedit`'s for the rest of the process's life instead
+ * ([RemoteRings.holdForProcess], D3), so its lines are still read after it has closed. Not exported: only the shell
+ * binds it.
  */
 abstract class RingDumpService : Service() {
     /** The process's name in the dump's first line: "camera", "video", "photosedit". */
@@ -68,6 +70,25 @@ object RemoteRings {
         if (connection != null) runCatching { context.unbindService(connection) }
     }
 
+    private val processHolds = ProcessHolds()
+
+    /**
+     * Binds [service] from the application context for the rest of this process's life — it is never released — so the
+     * ring is read on Settings > Diagnostics while a window of the process shows AND after the last one has closed, until
+     * the process itself is gone (phase 17, D3: the viewer other apps open is a helper in its caller's task, finished at
+     * its first Back, and its lines must still be read then). Once per process; a bind from the process itself does not
+     * keep the process alive.
+     */
+    fun holdForProcess(context: Context, service: Class<out RingDumpService>) {
+        val app = context.applicationContext
+        processHolds.hold(service.name) {
+            app.bindService(Intent(app, service), object : ServiceConnection {
+                override fun onServiceConnected(name: ComponentName, binder: IBinder) {}
+                override fun onServiceDisconnected(name: ComponentName) {}
+            }, Context.BIND_AUTO_CREATE)
+        }
+    }
+
     /**
      * The dump of [service] as text, or null when its process is not running. Blocking — call it off the main thread.
      * It never starts the process: the bind carries no BIND_AUTO_CREATE, so a service that is not already running
@@ -99,5 +120,20 @@ object RemoteRings {
         } finally {
             runCatching { app.unbindService(connection) }
         }
+    }
+}
+
+/**
+ * The rings a process holds for the rest of its life ([RemoteRings.holdForProcess]), by service class name: each is bound
+ * once, and a bind the platform refused is tried again at the next ask (`ProcessHoldsTest`).
+ */
+internal class ProcessHolds {
+    private val held = HashSet<String>()
+
+    /** Runs [bind] unless [name] is held already; true when this call bound it. */
+    @Synchronized
+    fun hold(name: String, bind: () -> Boolean): Boolean {
+        if (name in held) return false
+        return bind().also { if (it) held += name }
     }
 }

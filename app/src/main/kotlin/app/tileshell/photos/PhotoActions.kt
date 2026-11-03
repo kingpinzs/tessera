@@ -12,6 +12,7 @@ import app.tileshell.diag.Diagnostics
 import app.tileshell.media.AndroidMediaStorePort
 import app.tileshell.media.MediaWrites
 import app.tileshell.prefs.ShellSettings
+import app.tileshell.process.LauncherCalls
 import app.tileshell.ui.tokens.Scale
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
@@ -63,10 +64,22 @@ object PhotoActions {
         }
         result.fold(
             onSuccess = { file ->
-                // The theme store's own setter (phase 01 / 12): nothing is added to it.
-                ShellSettings.get(app).update { it.copy(backgroundUri = Uri.fromFile(file).toString()) }
-                Diagnostics.add("photosapp", "set as background $id -> $relative")
-                null
+                // The theme store's own setter (phase 01 / 12): nothing is added to it. Its one writer is the launcher's
+                // process: the viewer other apps open runs in `:photosedit` (D3), and from there the launcher's process is
+                // asked to point the background at this copy, so Start follows and no second process rewrites the file.
+                val pointed = if (LauncherCalls.isLauncher(app)) {
+                    ShellSettings.get(app).update { it.copy(backgroundUri = Uri.fromFile(file).toString()) }
+                    true
+                } else {
+                    LauncherCalls.setBackground(app, id)
+                }
+                if (pointed) {
+                    Diagnostics.add("photosapp", "set as background $id -> $relative")
+                    null
+                } else {
+                    Diagnostics.add("photosapp", "set as background $id failed: Start did not take it")
+                    "Start did not take it"
+                }
             },
             onFailure = { e ->
                 val why = e.message?.takeIf { it.length < 60 } ?: e.javaClass.simpleName

@@ -37,6 +37,15 @@ class AndroidUriAccess(private val activity: Activity) : UriAccessPort {
 
     override fun nameOfUid(uid: Int): Platform<String?> = ask { activity.packageManager.getNameForUid(uid) }
 
+    override fun launchFlags(): Platform<Int> = ask { activity.intent.flags }
+
+    override fun launchData(): Platform<String?> = ask { activity.intent.data?.toString() }
+
+    override fun launchClipUris(): Platform<List<String>> =
+        ask { activity.intent.clipData?.let { clip -> (0 until clip.itemCount).mapNotNull { clip.getItemAt(it)?.uri?.toString() } }.orEmpty() }
+
+    override fun persistedGrants(): Platform<List<String>> = ask { activity.contentResolver.persistedUriPermissions.map { it.uri.toString() } }
+
     /** The platform's answer to [question], or the class of what it threw — an Error too: nothing here fails open. */
     private inline fun <T> ask(question: () -> T): Platform<T> = try {
         Platform.Said(question())

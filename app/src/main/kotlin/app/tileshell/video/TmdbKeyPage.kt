@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import app.tileshell.diag.Diagnostics
 import app.tileshell.net.CredentialStore
 import app.tileshell.net.HeaderText
+import app.tileshell.net.SecurePage
 import app.tileshell.ui.LocalShellColors
 import app.tileshell.ui.components.OutlinedField
 import app.tileshell.ui.tokens.ShellType
@@ -56,10 +57,15 @@ object TmdbKeyLines {
  * (B2-L7: it is refused, never cut to fit), is refused: the page says so (`tmdb_key_error`), the field is emptied and
  * nothing is stored.
  *
+ * While the page shows, the hub's window is kept from screen capture and the Recents preview ([SecurePage]), and a key
+ * pasted into the field is cleared from the clipboard if the clipboard still holds it (the field's `secret`) — the
+ * owner's ruling D2 (a); the lines say blocked / allowed and cleared / not cleared, never what.
+ *
  * Tags: `tmdb_key_status`, `tmdb_key_field`, `tmdb_key_error`, `tmdb_key_save`, `tmdb_key_remove`.
  */
 @Composable
 fun TmdbKeyPage() {
+    SecurePage("video")
     val context = LocalContext.current
     val colors = LocalShellColors.current
     val scope = rememberCoroutineScope()
@@ -106,6 +112,7 @@ fun TmdbKeyPage() {
             value = typed, onValueChange = { typed = it; if (it.isNotEmpty()) refused = false }, tag = "tmdb_key_field", modifier = Modifier.fillMaxWidth(),
             // One more than a key may have, so a paste that is too long is refused by the rule, never stored cut (B2-L7).
             maxLength = HeaderText.FIELD_MAX, placeholder = "TMDB read access token", onImeAction = { save() }, secret = true,
+            linesTag = "video",
         )
         if (refused) {
             BasicText(HeaderText.TEXT_BAD_SECRET, Modifier.padding(top = 12.dp).testTag("tmdb_key_error"), style = ShellType.body.copy(color = Color.White))
